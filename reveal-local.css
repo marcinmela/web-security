@@ -1,0 +1,114 @@
+.reveal {
+    font-size: 25px;
+    font-family: sans-serif
+}
+
+.reveal p {
+    text-align: left;
+    
+}
+
+dl.org-dl {
+    text-align: left;
+}
+
+dl.org-dl dt {
+    margin: 30px 0 0 0;
+}
+
+dl.org-dl dd {
+    display: inline-block;
+    margin-left: 40px;
+}
+
+
+.reveal pre {
+    padding: 10px;
+}
+
+section.present{
+    text-align: left;
+}
+
+.reveal pre {
+    overflow: auto;
+    background-color: #fafafa;
+}
+
+p + ul.org-ul {
+    margin-top: 15px;
+}
+
+ul.org-ul + p {
+    margin-top: 15px;
+}
+
+.reveal h3 {
+    border-bottom: 1px solid;
+    padding-bottom: 10px;
+    box-shadow: 0 5px 5px -5px #333;
+    padding: 5px;
+    background-color: #D9CEAF
+}
+
+.reveal section img {
+    border: 0;
+    box-shadow: none;
+    display: block;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.reveal blockquote p {
+    padding: 15px;
+}
+
+.reveal blockquote {
+    margin-bottom: 15px;
+}
+
+.reveal table {
+    border-width:1px;
+    border-color: #666;
+    border-style: solid;
+    font-family:"Trebuchet MS", Arial, Helvetica, sans-serif;
+    font-size:20px;
+    border-spacing:0;
+    border-collapse:collapse;
+    width: 80%;
+    margin-left: auto;
+    margin-right: auto;
+    margin-top: 50px
+}
+
+.reveal thead{
+    background-color:#d9ceaf;
+    color:#FFF;
+    text-transform:uppercase;
+    font-weight:bold;
+}
+
+.reveal th{
+    padding:3px;
+    text-align:left;
+    background-color:#d9ceaf;
+}
+
+.reveal td {
+    padding: 3px;
+    border: 1px #ddd dotted;
+}
+
+.reveal tr:nth-child(2n+1){
+    background:#fafafa;
+}
+
+.reveal tr:nth-child(2n){
+    background:#eeeeee;
+}
+
+.reveal tr:hover{
+    background-color:#586e75;
+    color:#ffffff;
+}
+
