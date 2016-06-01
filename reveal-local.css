@@ -5,7 +5,10 @@
 
 .reveal p {
     text-align: left;
-    
+}
+
+.reveal h1, .reveal h2, .reveal h3, .reveal h4, .reveal h5, .reveal h6 {
+    font-family: Impact, serif
 }
 
 dl.org-dl {
@@ -21,12 +24,11 @@ dl.org-dl dd {
     margin-left: 40px;
 }
 
-
 .reveal pre {
     padding: 10px;
 }
 
-section.present{
+section.present {
     text-align: left;
 }
 
@@ -81,14 +83,14 @@ ul.org-ul + p {
     margin-top: 50px
 }
 
-.reveal thead{
+.reveal thead {
     background-color:#d9ceaf;
     color:#FFF;
     text-transform:uppercase;
     font-weight:bold;
 }
 
-.reveal th{
+.reveal th {
     padding:3px;
     text-align:left;
     background-color:#d9ceaf;
@@ -99,16 +101,19 @@ ul.org-ul + p {
     border: 1px #ddd dotted;
 }
 
-.reveal tr:nth-child(2n+1){
+.reveal tr:nth-child(2n+1) {
     background:#fafafa;
 }
 
-.reveal tr:nth-child(2n){
+.reveal tr:nth-child(2n) {
     background:#eeeeee;
 }
 
-.reveal tr:hover{
+.reveal tr:hover {
     background-color:#586e75;
     color:#ffffff;
 }
 
+.reveal code {
+    font-weight: bold;
+}
