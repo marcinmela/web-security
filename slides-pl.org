@@ -517,11 +517,11 @@ Content-Security-Policy-Report-Only: default-src 'self'; https://apis.google.com
 
 #+REVEAL: split
 
-- Aktywnie rozwijany:
-  - 1.0 :: 2015-02-19 - https://www.w3.org/TR/2015/NOTE-CSP1-20150219/
-  - 2.0 :: 2015-07-21 - https://www.w3.org/TR/CSP2/ (obecnie
-           rekomendowana)
-  - 3.0 (draft) :: https://w3c.github.io/webappsec-csp/
+Aktywnie rozwijany:
+- 1.0 :: 2015-02-19 - https://www.w3.org/TR/2015/NOTE-CSP1-20150219/
+- 2.0 :: 2015-07-21 - https://www.w3.org/TR/CSP2/ (obecnie
+         rekomendowana)
+- 3.0 (draft) :: https://w3c.github.io/webappsec-csp/
 
 ** Cross-Origin Resource Sharing
 
@@ -618,6 +618,30 @@ Cookie: JSESSIONID=sw2r1
 Cookie: JSESSIONID=bWFyY2luLTE0NDg3OTcyMzE%3D
 Cookie: JSESSIONID=202cb962ac59075b964b07152d234b70
 #+END_EXAMPLE
+
+** Insecure Randomness
+
+Najczęściej używany generator liczb losowych =java.util.Random= jest
+generatorem pseudolosowym, przez co:
+- generowane sekwencje są okresowe
+- można przewidzieć i odtworzyć jego wyniki
+- jest szybki
+
+Dlatego zaleca się używanie =java.security.SecureRandom= 
+
+#+BEGIN_SRC java
+// NIE
+Random random = new Random();
+
+// TAK
+SecureRandom random = new SecureRandom();
+
+
+random.nextInt()
+#+END_SRC
+
+Więcej informacji:
+http://resources.infosecinstitute.com/random-number-generation-java/
 
 ** Session Hijacking
 Atak ten polega na użyciu identyfikatora sesji który został prawidłowo
