@@ -83,7 +83,7 @@ Programiści często korzystają z online-owych narzędzi jak:
 - walidacja xml
 - udostępnianie/współpraca nad fragmentami kodu
 
-Nie mając żadnej informacji komu i gdzie przekazują te informacje. 
+Nie mając żadnej pewności komu i gdzie przekazują te informacje. 
 
 * Aspekt prawny
 
@@ -422,6 +422,40 @@ Przejęcie komputera za pomocą XSS-a?
   - Keylogger
   - Zawartość schowka (IE)
 
+** XSS - przykłady
+
+#+BEGIN_EXAMPLE
+<script>alert('XSS')</script>
+<img src="javascript:alert('XSS')">
+<div style="width: expression(alert('XSS'));">
+<div style="background-image: url(javascript:alert('XSS'))>
+<img style="xss:expr/*XSS*/ession(alert('XSS'))">
+</title><script>alert('XSS');</script>
+<svg/onload=alert('XSS')>
+<br size="&{alert('XSS')}">
+#+END_EXAMPLE
+
+Dużo więcej przykładów: https://www.owasp.org/index.php/XSS_Filter_Evasion_Cheat_Sheet
+
+** XSS - kodowanie treści
+Poniższy URL:
+
+#+BEGIN_EXAMPLE
+search.html?q=%3C%73%63%72%69%70%74%3E%61%6C%65%72%74%28%31%29%3C%2F%73%63%72%69%70%74%3E
+#+END_EXAMPLE
+
+jest interpretowany jak:
+
+#+BEGIN_EXAMPLE
+search.html?q=<script>alert(1)</script>
+#+END_EXAMPLE
+
+Podobnie zadziała:
+
+#+BEGIN_EXAMPLE
+search.html?q=<script>alert(String.fromCharCode(88,83,83))</script>
+#+END_EXAMPLE
+
 ** XSS - zapobieganie
 
 - Filtry HTTP które blokują przetwarzanie requestów zawierających
@@ -543,6 +577,7 @@ ograniczeń co do dopuszczalnego źródła żądania.
 - definiuje sposób w jaki przeglądarka i serwer dogadują się w kwestii
   wykonania requestów *cross origin*
 - wspierany przez praktycznie wszystkie współczesne przeglądarki
+- źle użyty może osłabić bezpieczeństwo naszej aplikacji
 
 ** CORS - scenariusz 1
 #+BEGIN_SRC plantuml :file images/generated-cors1-scenario.png :results silent
@@ -598,6 +633,26 @@ end
 #+CAPTION: Scenario of the CORS for GET
 #+ATTR_HTML: :align center :height 500px
 [[./images/generated-cors2-scenario.png]]
+
+** CORS & Tomcat
+#+BEGIN_SRC xml
+<filter>
+  <filter-name>CorsFilter</filter-name>
+  <filter-class>org.apache.catalina.filters.CorsFilter</filter-class>
+  <init-param>
+    <param-name>cors.allowed.origins</param-name>
+    <param-value>*</param-value>
+  </init-param>
+  <init-param>
+    <param-name>cors.allowed.methods</param-name>
+    <param-value>GET,POST,HEAD,OPTIONS,PUT</param-value>
+  </init-param>
+</filter>
+<filter-mapping>
+  <filter-name>CorsFilter</filter-name>
+  <url-pattern>/*</url-pattern>
+</filter-mapping>
+#+END_SRC
 
 * Ataki na sesje
 ** Session Prediction
@@ -1493,7 +1548,7 @@ zamiast
 *Podany użytkownik nie istnieje*
 
 ** Plik robots.txt
-Plik =robots.tx= wchodzący w skład mechanizmu *Robots Exclusion
+Plik =robots.txt= wchodzący w skład mechanizmu *Robots Exclusion
 Protocol* może być żródłem informacji o ukrytych zasobach. Niezależnie
 od niego można sprawdzić adresy takie jak:
 
