@@ -427,6 +427,7 @@ Przejęcie komputera za pomocą XSS-a?
 #+BEGIN_EXAMPLE
 <script>alert('XSS')</script>
 <img src="javascript:alert('XSS')">
+<img src=x onerror=alert(String.fromCharCode(88, 83, 83))>
 <div style="width: expression(alert('XSS'));">
 <div style="background-image: url(javascript:alert('XSS'))>
 <img style="xss:expr/*XSS*/ession(alert('XSS'))">
@@ -1512,7 +1513,7 @@ odpowiednio spreparowanych parametrów może sprawić, że to samo
 zapytanie będzie wykonywać się kilkadziesiąt razy dłużej konsumując
 wszystkie dostępne zasoby.
 
-** SQL Wildecards attack - przykłady
+** SQL Wildcards attack - przykłady
 
 #+BEGIN_EXAMPLE
 
